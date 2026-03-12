@@ -22,6 +22,10 @@ module.exports = {
   theme: {
     extend: {
       colors: tailwindColors,
+      fontFamily: {
+        cairo: ['Cairo_400Regular', 'sans-serif'],
+        inter: ['Inter_400Regular', 'sans-serif'],
+      },
     },
   },
   plugins: [

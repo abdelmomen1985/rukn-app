@@ -13,7 +13,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useSystemColorScheme() ?? "light";
-  const [colorScheme, setColorSchemeState] = useState<ColorScheme>("light");
+  const [colorScheme, setColorSchemeState] = useState<ColorScheme>(systemScheme);
 
   const applyScheme = useCallback((scheme: ColorScheme) => {
     nativewindColorScheme.set(scheme);
@@ -41,17 +41,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const themeVariables = useMemo(
     () =>
       vars({
-        "color-primary": SchemeColors["light"].primary,
-        "color-background": SchemeColors["light"].background,
-        "color-surface": SchemeColors["light"].surface,
-        "color-foreground": SchemeColors["light"].foreground,
-        "color-muted": SchemeColors["light"].muted,
-        "color-border": SchemeColors["light"].border,
-        "color-success": SchemeColors["light"].success,
-        "color-warning": SchemeColors["light"].warning,
-        "color-error": SchemeColors["light"].error,
+        "color-primary": SchemeColors[colorScheme].primary,
+        "color-background": SchemeColors[colorScheme].background,
+        "color-surface": SchemeColors[colorScheme].surface,
+        "color-foreground": SchemeColors[colorScheme].foreground,
+        "color-muted": SchemeColors[colorScheme].muted,
+        "color-border": SchemeColors[colorScheme].border,
+        "color-success": SchemeColors[colorScheme].success,
+        "color-warning": SchemeColors[colorScheme].warning,
+        "color-error": SchemeColors[colorScheme].error,
       }),
-    [],
+    [colorScheme],
   );
 
   const value = useMemo(

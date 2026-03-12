@@ -1,4 +1,5 @@
-import { Text, Pressable, type ViewStyle } from "react-native";
+import { Pressable, type ViewStyle } from "react-native";
+import { Text } from "@/components/ui/text";
 import * as Haptics from "expo-haptics";
 
 export interface CTAButtonProps {

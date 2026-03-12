@@ -1,11 +1,16 @@
-import { View, Text, FlatList } from "react-native";
+import { View, FlatList } from "react-native";
+import { Text } from "@/components/ui/text";
+import { TitleBar } from "@/components/title-bar";
+import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { ProductCard } from "@/components/product-card";
 import { products } from "@/data/products";
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useI18n } from "@/lib/i18n";
 
 export default function WishlistScreen() {
+  const { t, isRTL } = useI18n();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
 
@@ -66,15 +71,19 @@ export default function WishlistScreen() {
 
   return (
     <ScreenContainer className="bg-background">
+      <TitleBar />
       <View className="flex-1 px-6 py-6">
-        <Text className="text-foreground text-4xl font-bold mb-6" style={{ fontFamily: "Cormorant_Garamond" }}>
-          My Wishlist
-        </Text>
         {wishlistProducts.length === 0 ? (
           <View className="flex-1 items-center justify-center gap-4">
-            <Text className="text-muted text-lg text-center">Your wishlist is empty</Text>
+            <LottieView
+              source={require("@/assets/animations/wishlist-empty-2.json")}
+              autoPlay
+              loop
+              style={{ width: 280, height: 280 }}
+            />
+            <Text className="text-muted text-lg text-center">{t("wishlistEmpty")}</Text>
             <Text className="text-muted text-sm text-center">
-              Start adding items you love to your wishlist
+              {t("wishlistEmptySubtitle")}
             </Text>
           </View>
         ) : (

@@ -1,4 +1,7 @@
-import { View, Text, FlatList, Image, Pressable } from "react-native";
+import { View, FlatList, Image, Pressable } from "react-native";
+import { Text } from "@/components/ui/text";
+import { TitleBar } from "@/components/title-bar";
+import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { CTAButton } from "@/components/cta-button";
 import { products } from "@/data/products";
@@ -6,10 +9,12 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
+import { useI18n } from "@/lib/i18n";
 import * as Haptics from "expo-haptics";
 
 export default function CartScreen() {
   const colors = useColors();
+  const { t, isRTL } = useI18n();
   const [cart, setCart] = useState<Set<string>>(new Set());
 
   useEffect(() => {
@@ -44,15 +49,19 @@ export default function CartScreen() {
 
   return (
     <ScreenContainer className="bg-background">
+      <TitleBar />
       <View className="flex-1 px-6 py-6">
-        <Text className="text-foreground text-4xl font-bold mb-6" style={{ fontFamily: "Cormorant_Garamond" }}>
-          Shopping Cart
-        </Text>
         {cartProducts.length === 0 ? (
           <View className="flex-1 items-center justify-center gap-4">
-            <Text className="text-muted text-lg text-center">Your cart is empty</Text>
+            <LottieView
+              source={require("@/assets/animations/empty-cart.json")}
+              autoPlay
+              loop
+              style={{ width: 280, height: 280 }}
+            />
+            <Text className="text-muted text-lg text-center">{t("cartEmpty")}</Text>
             <Text className="text-muted text-sm text-center">
-              Add items to your cart to continue shopping
+              {t("cartEmptySubtitle")}
             </Text>
           </View>
         ) : (
@@ -84,11 +93,11 @@ export default function CartScreen() {
               keyExtractor={(item) => item.id}
             />
             <View className="absolute bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-6 gap-4">
-              <View className="flex-row justify-between items-center">
-                <Text className="text-foreground text-xl font-semibold">Total</Text>
+              <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
+                <Text className="text-foreground text-xl font-semibold">{t("cartTotal")}</Text>
                 <Text className="text-primary text-2xl font-bold">${total.toFixed(2)}</Text>
               </View>
-              <CTAButton title="Checkout" />
+              <CTAButton title={t("checkout")} />
             </View>
           </>
         )}

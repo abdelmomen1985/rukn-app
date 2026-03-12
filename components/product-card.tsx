@@ -1,4 +1,5 @@
-import { View, Text, Image, Pressable, type ImageSourcePropType } from "react-native";
+import { View, Image, Pressable, type ImageSourcePropType } from "react-native";
+import { Text } from "@/components/ui/text";
 import { useState } from "react";
 import * as Haptics from "expo-haptics";
 import { IconSymbol } from "./ui/icon-symbol";
@@ -45,11 +46,12 @@ export function ProductCard({
       onPress={onPress}
       style={({ pressed }) => ({
         opacity: pressed ? 0.7 : 1,
+        overflow: "hidden",
       })}
-      className="w-[156px] bg-surface rounded-lg overflow-hidden"
+      className="w-full bg-surface rounded-lg overflow-hidden"
     >
-      <View className="relative">
-        <Image source={image} className="w-full h-[156px]" resizeMode="cover" />
+      <View style={{ position: "relative", width: "100%", height: 156, overflow: "hidden" }}>
+        <Image source={image} style={{ width: "100%", height: 156 }} resizeMode="cover" />
         <Pressable
           onPress={handleWishlistToggle}
           style={({ pressed }) => ({

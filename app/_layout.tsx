@@ -5,7 +5,8 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { Platform } from "react-native";
+import { Platform, View } from "react-native";
+import * as Font from "expo-font";
 import "@/lib/_core/nativewind-pressable";
 import { ThemeProvider } from "@/lib/theme-provider";
 import {
@@ -18,6 +19,22 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
+import { I18nProvider, useI18n } from "@/lib/i18n";
+import { MockDataProvider } from "@/lib/mock-data-provider";
+import { PortfolioProvider } from "@/lib/portfolio-provider";
+import * as CairoFont from "@expo-google-fonts/cairo";
+import * as InterFont from "@expo-google-fonts/inter";
+
+function DirectionWrapper({ children }: { children: React.ReactNode }) {
+  const { isRTL } = useI18n();
+
+  return (
+    <View style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+      {children}
+    </View>
+  );
+}
+
 
 const DEFAULT_WEB_INSETS: EdgeInsets = { top: 0, right: 0, bottom: 0, left: 0 };
 const DEFAULT_WEB_FRAME: Rect = { x: 0, y: 0, width: 0, height: 0 };
@@ -32,6 +49,39 @@ export default function RootLayout() {
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
   const [frame, setFrame] = useState<Rect>(initialFrame);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
+  // Load custom fonts — names must match what CSS and StyleSheet reference
+  useEffect(() => {
+    const loadFonts = async () => {
+      try {
+        await Font.loadAsync({
+          Cairo_200ExtraLight: CairoFont.Cairo_200ExtraLight,
+          Cairo_300Light: CairoFont.Cairo_300Light,
+          Cairo_400Regular: CairoFont.Cairo_400Regular,
+          Cairo_500Medium: CairoFont.Cairo_500Medium,
+          Cairo_600SemiBold: CairoFont.Cairo_600SemiBold,
+          Cairo_700Bold: CairoFont.Cairo_700Bold,
+          Cairo_800ExtraBold: CairoFont.Cairo_800ExtraBold,
+          Cairo_900Black: CairoFont.Cairo_900Black,
+          Inter_100Thin: InterFont.Inter_100Thin,
+          Inter_200ExtraLight: InterFont.Inter_200ExtraLight,
+          Inter_300Light: InterFont.Inter_300Light,
+          Inter_400Regular: InterFont.Inter_400Regular,
+          Inter_500Medium: InterFont.Inter_500Medium,
+          Inter_600SemiBold: InterFont.Inter_600SemiBold,
+          Inter_700Bold: InterFont.Inter_700Bold,
+          Inter_800ExtraBold: InterFont.Inter_800ExtraBold,
+          Inter_900Black: InterFont.Inter_900Black,
+        });
+        setFontsLoaded(true);
+      } catch (error) {
+        console.warn("Error loading fonts:", error);
+        setFontsLoaded(true);
+      }
+    };
+    loadFonts();
+  }, []);
 
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
@@ -88,6 +138,11 @@ export default function RootLayout() {
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
+            <Stack.Screen name="order-history" />
+            <Stack.Screen name="portfolio/add-asset" />
+            <Stack.Screen name="portfolio/asset-detail" />
+            <Stack.Screen name="portfolio/converter" />
+            <Stack.Screen name="portfolio/zakat" />
           </Stack>
           <StatusBar style="auto" />
         </QueryClientProvider>
@@ -99,21 +154,35 @@ export default function RootLayout() {
 
   if (shouldOverrideSafeArea) {
     return (
-      <ThemeProvider>
-        <SafeAreaProvider initialMetrics={providerInitialMetrics}>
-          <SafeAreaFrameContext.Provider value={frame}>
-            <SafeAreaInsetsContext.Provider value={insets}>
-              {content}
-            </SafeAreaInsetsContext.Provider>
-          </SafeAreaFrameContext.Provider>
-        </SafeAreaProvider>
-      </ThemeProvider>
+      <I18nProvider>
+        <MockDataProvider>
+        <PortfolioProvider>
+        <ThemeProvider>
+          <SafeAreaProvider initialMetrics={providerInitialMetrics}>
+            <SafeAreaFrameContext.Provider value={frame}>
+              <SafeAreaInsetsContext.Provider value={insets}>
+                <DirectionWrapper>{content}</DirectionWrapper>
+              </SafeAreaInsetsContext.Provider>
+            </SafeAreaFrameContext.Provider>
+          </SafeAreaProvider>
+        </ThemeProvider>
+        </PortfolioProvider>
+        </MockDataProvider>
+      </I18nProvider>
     );
   }
 
   return (
-    <ThemeProvider>
-      <SafeAreaProvider initialMetrics={providerInitialMetrics}>{content}</SafeAreaProvider>
-    </ThemeProvider>
+    <I18nProvider>
+      <MockDataProvider>
+        <PortfolioProvider>
+          <ThemeProvider>
+            <SafeAreaProvider initialMetrics={providerInitialMetrics}>
+              <DirectionWrapper>{content}</DirectionWrapper>
+            </SafeAreaProvider>
+          </ThemeProvider>
+        </PortfolioProvider>
+      </MockDataProvider>
+    </I18nProvider>
   );
 }
