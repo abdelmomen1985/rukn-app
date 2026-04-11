@@ -6,45 +6,31 @@ import { ProductCard } from "@/components/product-card";
 import { products, categories } from "@/data/products";
 import { useColors } from "@/hooks/use-colors";
 import { LinearGradient } from "expo-linear-gradient";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
+import { useRouter, useFocusEffect } from "expo-router";
 
 export default function HomeScreen() {
   const colors = useColors();
   const { t, isRTL } = useI18n();
+  const router = useRouter();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  useEffect(() => {
-    loadWishlist();
-    loadCart();
-  }, []);
-
-  const loadWishlist = async () => {
-    try {
-      const data = await AsyncStorage.getItem("wishlist");
-      if (data) {
-        setWishlist(new Set(JSON.parse(data)));
-      }
-    } catch (error) {
-      console.error("Failed to load wishlist:", error);
-    }
-  };
-
-  const loadCart = async () => {
-    try {
-      const data = await AsyncStorage.getItem("cart");
-      if (data) {
-        setCart(new Set(JSON.parse(data)));
-      }
-    } catch (error) {
-      console.error("Failed to load cart:", error);
-    }
-  };
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem("wishlist")
+        .then((data) => setWishlist(new Set(data ? JSON.parse(data) : [])))
+        .catch((err) => console.error("Failed to load wishlist:", err));
+      AsyncStorage.getItem("cart")
+        .then((data) => setCart(new Set(data ? JSON.parse(data) : [])))
+        .catch((err) => console.error("Failed to load cart:", err));
+    }, [])
+  );
 
   const handleWishlistToggle = async (id: string, isWishlisted: boolean) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -193,6 +179,8 @@ export default function HomeScreen() {
                     initialWishlisted={wishlist.has(item.id)}
                     onWishlistToggle={handleWishlistToggle}
                     onAddToCart={handleAddToCart}
+                    inCart={cart.has(item.id)}
+                    onPress={() => router.push(`/product/${item.id}`)}
                   />
                 </View>
               ))}
@@ -213,6 +201,8 @@ export default function HomeScreen() {
                     initialWishlisted={wishlist.has(item.id)}
                     onWishlistToggle={handleWishlistToggle}
                     onAddToCart={handleAddToCart}
+                    inCart={cart.has(item.id)}
+                    onPress={() => router.push(`/product/${item.id}`)}
                   />
                 </View>
               )}

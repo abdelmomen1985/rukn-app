@@ -63,10 +63,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="portfolio"
+        name="invest"
         options={{
-          title: t("tabPortfolio"),
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.pie" color={color} />,
+          title: t("tabInvest"),
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.line.uptrend.xyaxis" color={color} />,
         }}
       />
     </Tabs>

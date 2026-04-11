@@ -35,6 +35,8 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>["name"]> = {
   "plus.circle.fill": "add-circle",
   "arrow.up.right": "trending-up",
   "arrow.down.right": "trending-down",
+  "trending-up": "trending-up",
+  "trending-down": "trending-down",
   "arrow.clockwise": "refresh",
   "arrow.left.arrow.right": "swap-horiz",
   "wifi.slash": "wifi-off",
@@ -50,6 +52,11 @@ const MAPPING: Record<string, ComponentProps<typeof MaterialIcons>["name"]> = {
   "sparkles": "auto-awesome",
   "pencil": "edit",
   "info.circle": "info",
+  "person.fill.questionmark": "support-agent",
+  "chart.line.uptrend.xyaxis": "trending-up",
+  "lightbulb": "lightbulb-outline",
+  "lock.fill": "lock",
+  "lock.shield": "security",
 };
 
 /**

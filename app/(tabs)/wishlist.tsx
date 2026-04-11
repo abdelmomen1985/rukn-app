@@ -5,25 +5,30 @@ import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { ProductCard } from "@/components/product-card";
 import { products } from "@/data/products";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useI18n } from "@/lib/i18n";
+import { useFocusEffect } from "expo-router";
 
 export default function WishlistScreen() {
   const { t, isRTL } = useI18n();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    loadWishlist();
-    loadCart();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadWishlist();
+      loadCart();
+    }, [])
+  );
 
   const loadWishlist = async () => {
     try {
       const data = await AsyncStorage.getItem("wishlist");
       if (data) {
         setWishlist(new Set(JSON.parse(data)));
+      } else {
+        setWishlist(new Set());
       }
     } catch (error) {
       console.error("Failed to load wishlist:", error);
@@ -35,6 +40,8 @@ export default function WishlistScreen() {
       const data = await AsyncStorage.getItem("cart");
       if (data) {
         setCart(new Set(JSON.parse(data)));
+      } else {
+        setCart(new Set());
       }
     } catch (error) {
       console.error("Failed to load cart:", error);
@@ -102,6 +109,7 @@ export default function WishlistScreen() {
                 initialWishlisted={true}
                 onWishlistToggle={handleWishlistToggle}
                 onAddToCart={handleAddToCart}
+                inCart={cart.has(item.id)}
               />
             )}
             keyExtractor={(item) => item.id}

@@ -19,7 +19,7 @@ export function NisabAlertBanner({ visible }: NisabAlertBannerProps) {
     <Pressable
       onPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        router.push("/portfolio/zakat");
+        router.push("/invest/zakat");
       }}
       style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
     >

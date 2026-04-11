@@ -90,7 +90,7 @@ export default function AssetDetailScreen() {
         </Text>
         {/* Edit button */}
         <Pressable
-          onPress={() => router.push({ pathname: "/portfolio/add-asset", params: { assetId: asset.id } })}
+          onPress={() => router.push({ pathname: "/invest/add-asset", params: { assetId: asset.id } })}
           style={({ pressed }) => ({
             opacity: pressed ? 0.6 : 1,
             width: 36,

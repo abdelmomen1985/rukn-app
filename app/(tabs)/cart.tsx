@@ -5,27 +5,32 @@ import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { CTAButton } from "@/components/cta-button";
 import { products } from "@/data/products";
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useI18n } from "@/lib/i18n";
 import * as Haptics from "expo-haptics";
+import { useFocusEffect } from "expo-router";
 
 export default function CartScreen() {
   const colors = useColors();
   const { t, isRTL } = useI18n();
   const [cart, setCart] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    loadCart();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadCart();
+    }, [])
+  );
 
   const loadCart = async () => {
     try {
       const data = await AsyncStorage.getItem("cart");
       if (data) {
         setCart(new Set(JSON.parse(data)));
+      } else {
+        setCart(new Set());
       }
     } catch (error) {
       console.error("Failed to load cart:", error);

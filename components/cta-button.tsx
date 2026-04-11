@@ -7,10 +7,12 @@ export interface CTAButtonProps {
   onPress?: () => void;
   variant?: "primary" | "outline";
   style?: ViewStyle;
+  disabled?: boolean;
 }
 
-export function CTAButton({ title, onPress, variant = "primary", style }: CTAButtonProps) {
+export function CTAButton({ title, onPress, variant = "primary", style, disabled = false }: CTAButtonProps) {
   const handlePress = () => {
+    if (disabled) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPress?.();
   };
@@ -20,8 +22,8 @@ export function CTAButton({ title, onPress, variant = "primary", style }: CTABut
       onPress={handlePress}
       style={({ pressed }) => [
         {
-          transform: [{ scale: pressed ? 0.97 : 1 }],
-          opacity: pressed ? 0.9 : 1,
+          transform: [{ scale: pressed && !disabled ? 0.97 : 1 }],
+          opacity: disabled ? 0.5 : pressed ? 0.9 : 1,
         },
         style,
       ]}

@@ -139,10 +139,11 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
             <Stack.Screen name="order-history" />
-            <Stack.Screen name="portfolio/add-asset" />
-            <Stack.Screen name="portfolio/asset-detail" />
-            <Stack.Screen name="portfolio/converter" />
-            <Stack.Screen name="portfolio/zakat" />
+            <Stack.Screen name="invest/add-asset" />
+            <Stack.Screen name="invest/asset-detail" />
+            <Stack.Screen name="invest/converter" />
+            <Stack.Screen name="invest/zakat" />
+            <Stack.Screen name="product/[id]" />
           </Stack>
           <StatusBar style="auto" />
         </QueryClientProvider>

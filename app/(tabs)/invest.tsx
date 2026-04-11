@@ -8,6 +8,8 @@ import { PortfolioPieChart } from "@/components/portfolio/pie-chart";
 import { AssetCard } from "@/components/portfolio/asset-card";
 import { SortFilterBar, type SortKey, type FilterKey } from "@/components/portfolio/sort-filter-bar";
 import { NisabAlertBanner } from "@/components/portfolio/nisab-alert-banner";
+import { InvestTopNav } from "@/components/invest-top-nav";
+import { InvestBottomNav } from "@/components/invest-bottom-nav";
 import { usePortfolio } from "@/lib/portfolio-provider";
 import { calculateZakat, getCurrentValueSAR } from "@/lib/portfolio-utils";
 import { useI18n } from "@/lib/i18n";
@@ -17,7 +19,7 @@ import { useState, useMemo } from "react";
 import type { PortfolioAsset } from "@/data/portfolio";
 import * as Haptics from "expo-haptics";
 
-export default function PortfolioScreen() {
+export default function InvestScreen() {
   const { assets, metals, spotPrices, refreshPrices, isLoadingPrices, getSummary, getAssetCurrentValue } = usePortfolio();
   const { t } = useI18n();
   const colors = useColors();
@@ -64,14 +66,14 @@ export default function PortfolioScreen() {
   };
 
   const handleAssetPress = (asset: PortfolioAsset) => {
-    router.push({ pathname: "/portfolio/asset-detail", params: { assetId: asset.id } });
+    router.push({ pathname: "/invest/asset-detail", params: { assetId: asset.id } });
   };
 
   // For the sort/filter bar: filter options are dynamic per existing metal types
   const usedMetalTypes = useMemo(() => [...new Set(assets.map((a) => a.metalType))], [assets]);
 
   return (
-    <ScreenContainer edges={["top", "left", "right"]} className="bg-background">
+    <ScreenContainer edges={["top", "left", "right"]} className="bg-background" style={{ paddingBottom: 0 }}>
       {/* Header */}
       <View
         style={{
@@ -85,42 +87,15 @@ export default function PortfolioScreen() {
         }}
       >
         <Text style={{ color: colors.foreground, fontSize: 22, fontWeight: "700" }}>
-          {t("portfolioTitle")}
+          {t("investTitle")}
         </Text>
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {/* Converter */}
-          <Pressable
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/portfolio/converter"); }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.7 : 1,
-              width: 36, height: 36, borderRadius: 18,
-              backgroundColor: colors.surface,
-              alignItems: "center", justifyContent: "center",
-              borderWidth: 1, borderColor: colors.border,
-            })}
-          >
-            <IconSymbol name="arrow.left.arrow.right" size={18} color={colors.primary} />
-          </Pressable>
-          {/* Zakat */}
-          <Pressable
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push("/portfolio/zakat"); }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.7 : 1,
-              width: 36, height: 36, borderRadius: 18,
-              backgroundColor: colors.surface,
-              alignItems: "center", justifyContent: "center",
-              borderWidth: 1, borderColor: colors.border,
-            })}
-          >
-            <IconSymbol name="scale" size={18} color="#D97706" />
-          </Pressable>
-        </View>
+        <InvestTopNav key="invest-top-nav" />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.primary} />}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: 16 }}
       >
         <SpotPriceTicker />
         <NisabAlertBanner visible={showNisabAlert} />
@@ -176,24 +151,10 @@ export default function PortfolioScreen() {
             </View>
           )}
         </View>
-
-        {/* Add Asset */}
-        <View style={{ paddingHorizontal: 16, marginTop: 8 }}>
-          <Pressable
-            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/portfolio/add-asset"); }}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.85 : 1,
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-              backgroundColor: "#07352b",
-              borderRadius: 14, paddingVertical: 16,
-              alignItems: "center", flexDirection: "row", justifyContent: "center", gap: 8,
-            })}
-          >
-            <IconSymbol name="plus.circle.fill" size={20} color="#D4AF37" />
-            <Text style={{ color: "#D4AF37", fontSize: 16, fontWeight: "700" }}>{t("addAsset")}</Text>
-          </Pressable>
-        </View>
       </ScrollView>
+
+      {/* Bottom Navigation */}
+      <InvestBottomNav />
     </ScreenContainer>
   );
 }

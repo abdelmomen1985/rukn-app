@@ -1,7 +1,7 @@
 import { View, Image, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useRouter, useFocusEffect } from "expo-router";
+import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Text } from "@/components/ui/text";
@@ -14,19 +14,16 @@ export function TitleBar() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [w, c] = await Promise.all([
-          AsyncStorage.getItem("wishlist"),
-          AsyncStorage.getItem("cart"),
-        ]);
-        setWishlistCount(w ? JSON.parse(w).length : 0);
-        setCartCount(c ? JSON.parse(c).length : 0);
-      } catch {}
-    };
-    load();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem("wishlist").then((w) =>
+        setWishlistCount(w ? JSON.parse(w).length : 0)
+      ).catch(() => {});
+      AsyncStorage.getItem("cart").then((c) =>
+        setCartCount(c ? JSON.parse(c).length : 0)
+      ).catch(() => {});
+    }, [])
+  );
 
   return (
     <View

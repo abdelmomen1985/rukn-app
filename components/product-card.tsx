@@ -14,6 +14,7 @@ export interface ProductCardProps {
   onWishlistToggle?: (id: string, isWishlisted: boolean) => void;
   onAddToCart?: (id: string) => void;
   initialWishlisted?: boolean;
+  inCart?: boolean;
 }
 
 export function ProductCard({
@@ -25,6 +26,7 @@ export function ProductCard({
   onWishlistToggle,
   onAddToCart,
   initialWishlisted = false,
+  inCart = false,
 }: ProductCardProps) {
   const colors = useColors();
   const [isWishlisted, setIsWishlisted] = useState(initialWishlisted);
@@ -37,6 +39,7 @@ export function ProductCard({
   };
 
   const handleAddToCart = () => {
+    if (inCart) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onAddToCart?.(id);
   };
@@ -76,12 +79,17 @@ export function ProductCard({
           </View>
           <Pressable
             onPress={handleAddToCart}
+            disabled={inCart}
             style={({ pressed }) => ({
-              opacity: pressed ? 0.6 : 1,
+              opacity: pressed ? 0.6 : inCart ? 0.5 : 1,
             })}
-            className="w-8 h-8 bg-primary rounded-full items-center justify-center"
+            className={`w-8 h-8 rounded-full items-center justify-center ${inCart ? "bg-muted" : "bg-primary"}`}
           >
-            <IconSymbol name="bag" size={16} color={colors.darkGreen} />
+            <IconSymbol
+              name={inCart ? "checkmark" : "bag"}
+              size={16}
+              color={inCart ? colors.foreground : colors.darkGreen}
+            />
           </Pressable>
         </View>
       </View>
