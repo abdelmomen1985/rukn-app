@@ -8,6 +8,7 @@ import { PortfolioPieChart } from "@/components/portfolio/pie-chart";
 import { AssetCard } from "@/components/portfolio/asset-card";
 import { SortFilterBar, type SortKey, type FilterKey } from "@/components/portfolio/sort-filter-bar";
 import { NisabAlertBanner } from "@/components/portfolio/nisab-alert-banner";
+import { TripsEntryCard } from "@/components/portfolio/trips-entry-card";
 import { InvestTopNav } from "@/components/invest-top-nav";
 import { InvestBottomNav } from "@/components/invest-bottom-nav";
 import { usePortfolio } from "@/lib/portfolio-provider";
@@ -100,6 +101,7 @@ export default function InvestScreen() {
         <SpotPriceTicker />
         <NisabAlertBanner visible={showNisabAlert} />
         <PortfolioSummaryCard />
+        <TripsEntryCard />
 
         {/* Allocation pie chart */}
         {pieEntries.length > 0 && (
