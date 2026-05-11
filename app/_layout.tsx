@@ -22,6 +22,7 @@ import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-run
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { MockDataProvider } from "@/lib/mock-data-provider";
 import { PortfolioProvider } from "@/lib/portfolio-provider";
+import { TripsProvider } from "@/lib/trips-provider";
 import * as CairoFont from "@expo-google-fonts/cairo";
 import * as InterFont from "@expo-google-fonts/inter";
 
@@ -143,6 +144,10 @@ export default function RootLayout() {
             <Stack.Screen name="invest/asset-detail" />
             <Stack.Screen name="invest/converter" />
             <Stack.Screen name="invest/zakat" />
+            <Stack.Screen name="invest/trips/index" />
+            <Stack.Screen name="invest/trips/new" />
+            <Stack.Screen name="invest/trips/[tripId]" />
+            <Stack.Screen name="invest/trips/add-stop" />
             <Stack.Screen name="product/[id]" />
           </Stack>
           <StatusBar style="auto" />
@@ -158,6 +163,7 @@ export default function RootLayout() {
       <I18nProvider>
         <MockDataProvider>
         <PortfolioProvider>
+        <TripsProvider>
         <ThemeProvider>
           <SafeAreaProvider initialMetrics={providerInitialMetrics}>
             <SafeAreaFrameContext.Provider value={frame}>
@@ -167,6 +173,7 @@ export default function RootLayout() {
             </SafeAreaFrameContext.Provider>
           </SafeAreaProvider>
         </ThemeProvider>
+        </TripsProvider>
         </PortfolioProvider>
         </MockDataProvider>
       </I18nProvider>
@@ -177,11 +184,13 @@ export default function RootLayout() {
     <I18nProvider>
       <MockDataProvider>
         <PortfolioProvider>
-          <ThemeProvider>
-            <SafeAreaProvider initialMetrics={providerInitialMetrics}>
-              <DirectionWrapper>{content}</DirectionWrapper>
-            </SafeAreaProvider>
-          </ThemeProvider>
+          <TripsProvider>
+            <ThemeProvider>
+              <SafeAreaProvider initialMetrics={providerInitialMetrics}>
+                <DirectionWrapper>{content}</DirectionWrapper>
+              </SafeAreaProvider>
+            </ThemeProvider>
+          </TripsProvider>
         </PortfolioProvider>
       </MockDataProvider>
     </I18nProvider>

@@ -38,6 +38,13 @@ const NAV_ITEMS: NavItem[] = [
     iconColor: "#059669",
   },
   {
+    id: "trips",
+    icon: "bag",
+    labelKey: "tripsCardLabel",
+    route: "/invest/trips",
+    iconColor: "#A4313F",
+  },
+  {
     id: "add-asset",
     icon: "plus.circle.fill",
     labelKey: "addAsset",
