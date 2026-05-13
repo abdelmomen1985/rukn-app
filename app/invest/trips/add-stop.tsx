@@ -128,7 +128,7 @@ export default function AddStopScreen() {
 
   if (!trip) {
     return (
-      <ScreenContainer className="bg-background">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ color: colors.muted }}>{t("tripsEmptyTitle")}</Text>
         </View>
@@ -165,7 +165,7 @@ export default function AddStopScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-background">
+    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
       {/* Header */}
       <View
         style={{

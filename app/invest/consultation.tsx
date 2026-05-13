@@ -184,7 +184,7 @@ export default function ConsultationScreen() {
 
   if (step === "confirmed") {
     return (
-      <ScreenContainer className="bg-background">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
         <View
           style={{
             flexDirection: "row",
@@ -256,7 +256,7 @@ export default function ConsultationScreen() {
 
   if (step === "payment") {
     return (
-      <ScreenContainer className="bg-background">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
         <View
           style={{
             flexDirection: "row",
@@ -391,7 +391,7 @@ export default function ConsultationScreen() {
   // ── Schedule screen (default) ─────────────────────────────────────────────
 
   return (
-    <ScreenContainer className="bg-background">
+    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
       {/* Header */}
       <View
         style={{

@@ -30,7 +30,7 @@ export default function AssetDetailScreen() {
 
   if (!asset) {
     return (
-      <ScreenContainer className="bg-background">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ color: colors.muted }}>{t("assetNotFound")}</Text>
         </View>
@@ -69,7 +69,7 @@ export default function AssetDetailScreen() {
   };
 
   return (
-    <ScreenContainer className="bg-background">
+    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
       {/* Header */}
       <View
         style={{

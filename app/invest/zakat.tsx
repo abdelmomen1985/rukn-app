@@ -51,7 +51,7 @@ export default function ZakatScreen() {
   }, [spotPrices]);
 
   return (
-    <ScreenContainer className="bg-background">
+    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
       {/* Header */}
       <View
         style={{

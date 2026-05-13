@@ -141,7 +141,7 @@ export default function TripDetailScreen() {
 
   if (!trip) {
     return (
-      <ScreenContainer className="bg-background">
+      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", gap: 8 }}>
           <Text style={{ color: colors.muted }}>{t("tripsEmptyTitle")}</Text>
           <Pressable
@@ -206,7 +206,7 @@ export default function TripDetailScreen() {
   const best = summary?.best;
 
   return (
-    <ScreenContainer className="bg-background">
+    <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
       {/* Header */}
       <View
         style={{
