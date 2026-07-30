@@ -6,12 +6,39 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import { useI18n, type Lang } from "@/lib/i18n";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
+import { getCustomerToken, getMe, logout, type Customer } from "@/lib/medusa";
 
 export default function ProfileScreen() {
   const colors = useColors();
   const { t, lang, setLang, isRTL } = useI18n();
   const router = useRouter();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      getCustomerToken().then((token) => {
+        if (!token) {
+          setCustomer(null);
+          return;
+        }
+        getMe()
+          .then(setCustomer)
+          .catch(() => setCustomer(null));
+      });
+    }, [])
+  );
+
+  const handleAuthPress = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (customer) {
+      await logout();
+      setCustomer(null);
+    } else {
+      router.push("/auth" as any);
+    }
+  };
 
   const menuItems = [
     { icon: "person", title: t("accountSettings"), subtitle: t("accountSettingsSubtitle"), route: null },
@@ -45,19 +72,25 @@ export default function ProfileScreen() {
           </View>
           <View className="items-center gap-1">
             <Text className="text-foreground text-2xl font-bold" style={{ fontFamily: "Cormorant_Garamond" }}>
-              {t("guestUser")}
+              {customer
+                ? [customer.first_name, customer.last_name].filter(Boolean).join(" ") || customer.email
+                : t("guestUser")}
             </Text>
-            <Text className="text-muted text-sm">{t("signInSubtitle")}</Text>
+            <Text className="text-muted text-sm">
+              {customer ? customer.email : t("signInSubtitle")}
+            </Text>
           </View>
           <Pressable
-            onPress={() => handleMenuPress("Sign In")}
+            onPress={handleAuthPress}
             style={({ pressed }) => ({
               opacity: pressed ? 0.9 : 1,
               transform: [{ scale: pressed ? 0.97 : 1 }],
             })}
             className="bg-primary py-3 rounded-full items-center"
           >
-            <Text className="text-darkGreen text-base font-bold">{t("signIn")}</Text>
+            <Text className="text-darkGreen text-base font-bold">
+              {customer ? t("signOut") : t("signIn")}
+            </Text>
           </Pressable>
         </View>
 

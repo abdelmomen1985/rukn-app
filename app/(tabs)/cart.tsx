@@ -4,18 +4,20 @@ import { TitleBar } from "@/components/title-bar";
 import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { CTAButton } from "@/components/cta-button";
-import { products } from "@/data/products";
+import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useColors } from "@/hooks/use-colors";
 import { useI18n } from "@/lib/i18n";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 export default function CartScreen() {
   const colors = useColors();
   const { t, isRTL } = useI18n();
+  const router = useRouter();
+  const { products } = useStoreCatalog();
   const [cart, setCart] = useState<Set<string>>(new Set());
 
   useFocusEffect(
@@ -51,6 +53,9 @@ export default function CartScreen() {
 
   const cartProducts = products.filter((p) => cart.has(p.id));
   const total = cartProducts.reduce((sum, p) => sum + p.price, 0);
+  const isSar = cartProducts.some((p) => p.currency === "SAR");
+  const formatPrice = (value: number) =>
+    isSar ? `${value.toLocaleString()} ر.س` : `$${value.toFixed(2)}`;
 
   return (
     <ScreenContainer className="bg-background">
@@ -82,7 +87,9 @@ export default function CartScreen() {
                     <Text className="text-foreground text-base font-semibold" numberOfLines={2}>
                       {item.name}
                     </Text>
-                    <Text className="text-primary text-lg font-bold">${item.price.toFixed(2)}</Text>
+                    <Text className="text-primary text-lg font-bold">
+                      {item.currency === "SAR" ? `${item.price.toLocaleString()} ر.س` : `$${item.price.toFixed(2)}`}
+                    </Text>
                   </View>
                   <Pressable
                     onPress={() => handleRemoveFromCart(item.id)}
@@ -100,9 +107,9 @@ export default function CartScreen() {
             <View className="absolute bottom-0 left-0 right-0 bg-background border-t border-border px-6 py-6 gap-4">
               <View style={{ flexDirection: isRTL ? "row-reverse" : "row", justifyContent: "space-between", alignItems: "center" }}>
                 <Text className="text-foreground text-xl font-semibold">{t("cartTotal")}</Text>
-                <Text className="text-primary text-2xl font-bold">${total.toFixed(2)}</Text>
+                <Text className="text-primary text-2xl font-bold">{formatPrice(total)}</Text>
               </View>
-              <CTAButton title={t("checkout")} />
+              <CTAButton title={t("checkout")} onPress={() => router.push("/checkout" as any)} />
             </View>
           </>
         )}

@@ -4,7 +4,7 @@ import { Text } from "@/components/ui/text";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { CTAButton } from "@/components/cta-button";
-import { products } from "@/data/products";
+import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/use-colors";
 import { useI18n } from "@/lib/i18n";
@@ -19,6 +19,7 @@ export default function ProductDetailScreen() {
   const { t, isRTL, lang } = useI18n();
   const insets = useSafeAreaInsets();
 
+  const { products } = useStoreCatalog();
   const product = products.find((p) => p.id === id);
 
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -129,7 +130,7 @@ export default function ProductDetailScreen() {
             <Text
               className="text-primary text-3xl font-bold"
             >
-              {product.price.toLocaleString(priceLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2, style: "currency", currency: "USD" })}
+              {product.price.toLocaleString(priceLocale, { minimumFractionDigits: 2, maximumFractionDigits: 2, style: "currency", currency: product.currency ?? "USD" })}
             </Text>
           </View>
 

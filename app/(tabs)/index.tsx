@@ -3,7 +3,7 @@ import { Text } from "@/components/ui/text";
 import { TitleBar } from "@/components/title-bar";
 import { ScreenContainer } from "@/components/screen-container";
 import { ProductCard } from "@/components/product-card";
-import { products, categories } from "@/data/products";
+import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useColors } from "@/hooks/use-colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState, useCallback } from "react";
@@ -20,6 +20,7 @@ export default function HomeScreen() {
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const { products, categories, isLive } = useStoreCatalog();
 
   useFocusEffect(
     useCallback(() => {
@@ -156,7 +157,7 @@ export default function HomeScreen() {
                     selectedCategory === category.id ? "text-darkGreen" : "text-foreground"
                   )}
                 >
-                  {t(category.id as any)}
+                  {isLive ? category.title : t(category.id as any)}
                 </Text>
               </Pressable>
             ))}
@@ -176,6 +177,7 @@ export default function HomeScreen() {
                     name={item.name}
                     price={item.price}
                     image={item.image}
+                    currency={item.currency}
                     initialWishlisted={wishlist.has(item.id)}
                     onWishlistToggle={handleWishlistToggle}
                     onAddToCart={handleAddToCart}
@@ -198,6 +200,7 @@ export default function HomeScreen() {
                     name={item.name}
                     price={item.price}
                     image={item.image}
+                    currency={item.currency}
                     initialWishlisted={wishlist.has(item.id)}
                     onWishlistToggle={handleWishlistToggle}
                     onAddToCart={handleAddToCart}

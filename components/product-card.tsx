@@ -10,6 +10,7 @@ export interface ProductCardProps {
   name: string;
   price: number;
   image: ImageSourcePropType;
+  currency?: "USD" | "SAR";
   onPress?: () => void;
   onWishlistToggle?: (id: string, isWishlisted: boolean) => void;
   onAddToCart?: (id: string) => void;
@@ -22,6 +23,7 @@ export function ProductCard({
   name,
   price,
   image,
+  currency = "USD",
   onPress,
   onWishlistToggle,
   onAddToCart,
@@ -75,7 +77,9 @@ export function ProductCard({
         </Text>
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-1">
-            <Text className="text-primary text-base font-bold">${price.toFixed(2)}</Text>
+            <Text className="text-primary text-base font-bold">
+              {currency === "SAR" ? `${price.toLocaleString()} ر.س` : `$${price.toFixed(2)}`}
+            </Text>
           </View>
           <Pressable
             onPress={handleAddToCart}

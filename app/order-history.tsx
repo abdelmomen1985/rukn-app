@@ -1,11 +1,14 @@
-import { View, ScrollView, Pressable, Image } from "react-native";
+import { View, ScrollView, Pressable, Image, ActivityIndicator } from "react-native";
 import { Text } from "@/components/ui/text";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { CTAButton } from "@/components/cta-button";
 import { useColors } from "@/hooks/use-colors";
 import { useI18n } from "@/lib/i18n";
-import { useMockData } from "@/lib/mock-data-provider";
-import { useRouter } from "expo-router";
+import { getCustomerToken, listOrders } from "@/lib/medusa";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import type { Order, OrderStatus } from "@/data/orders";
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; labelAr: string; color: string; bg: string; icon: string }> = {
@@ -140,7 +143,7 @@ function OrderCard({ order, isRTL, colors }: { order: Order; isRTL: boolean; col
           </View>
         </View>
         <Text style={{ color: colors.primary, fontSize: 18, fontWeight: "700", flexShrink: 0 }}>
-          ${order.total.toLocaleString()}
+          {order.total.toLocaleString()} ر.س
         </Text>
       </View>
     </View>
@@ -150,8 +153,21 @@ function OrderCard({ order, isRTL, colors }: { order: Order; isRTL: boolean; col
 export default function OrderHistoryScreen() {
   const colors = useColors();
   const { t, isRTL } = useI18n();
-  const { orders } = useMockData();
   const router = useRouter();
+
+  const [hasToken, setHasToken] = useState<boolean | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      getCustomerToken().then((token) => setHasToken(Boolean(token)));
+    }, [])
+  );
+
+  const ordersQuery = useQuery({
+    queryKey: ["medusa-orders"],
+    queryFn: listOrders,
+    enabled: hasToken === true,
+  });
+  const orders = ordersQuery.data ?? [];
 
   return (
     <ScreenContainer className="bg-background">
@@ -195,11 +211,27 @@ export default function OrderHistoryScreen() {
         </Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }}>
-        {orders.map((order) => (
-          <OrderCard key={order.id} order={order} isRTL={isRTL} colors={colors} />
-        ))}
-      </ScrollView>
+      {hasToken === false ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 }}>
+          <IconSymbol name="person" size={48} color={colors.muted} />
+          <Text className="text-muted text-base text-center">{t("signInToViewOrders")}</Text>
+          <CTAButton title={t("signIn")} onPress={() => router.push("/auth" as any)} />
+        </View>
+      ) : ordersQuery.isLoading || hasToken === null ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={colors.primary} />
+        </View>
+      ) : orders.length === 0 ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: 32 }}>
+          <Text className="text-muted text-base">{t("noOrdersYet")}</Text>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16 }}>
+          {orders.map((order) => (
+            <OrderCard key={order.id} order={order} isRTL={isRTL} colors={colors} />
+          ))}
+        </ScrollView>
+      )}
     </ScreenContainer>
   );
 }

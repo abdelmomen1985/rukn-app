@@ -7,6 +7,10 @@ export interface Product {
   category: string;
   description?: string;
   descriptionAr?: string;
+  /** Medusa variant id — present only for products loaded from the backend. */
+  variantId?: string;
+  /** Display currency; mock data is USD, Medusa products are SAR. */
+  currency?: "USD" | "SAR";
 }
 
 export interface Category {

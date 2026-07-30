@@ -140,6 +140,8 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="oauth/callback" />
             <Stack.Screen name="order-history" />
+            <Stack.Screen name="checkout" />
+            <Stack.Screen name="auth" />
             <Stack.Screen name="invest/add-asset" />
             <Stack.Screen name="invest/asset-detail" />
             <Stack.Screen name="invest/converter" />
