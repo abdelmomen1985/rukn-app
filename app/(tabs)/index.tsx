@@ -3,6 +3,7 @@ import { Text } from "@/components/ui/text";
 import { TitleBar } from "@/components/title-bar";
 import { ScreenContainer } from "@/components/screen-container";
 import { ProductCard } from "@/components/product-card";
+import { CatalogState } from "@/components/catalog-state";
 import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useColors } from "@/hooks/use-colors";
 import { LinearGradient } from "expo-linear-gradient";
@@ -20,7 +21,7 @@ export default function HomeScreen() {
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const { products, categories, isLive } = useStoreCatalog();
+  const { products, categories, isLoading, error, isEmpty, refetch } = useStoreCatalog();
 
   useFocusEffect(
     useCallback(() => {
@@ -157,14 +158,21 @@ export default function HomeScreen() {
                     selectedCategory === category.id ? "text-darkGreen" : "text-foreground"
                   )}
                 >
-                  {isLive ? category.title : t(category.id as any)}
+                  {category.title}
                 </Text>
               </Pressable>
             ))}
           </ScrollView>
 
           {/* Products Grid */}
-          {filteredProducts.length === 0 ? (
+          {isLoading || error || isEmpty ? (
+            <CatalogState
+              isLoading={isLoading}
+              error={error}
+              isEmpty={isEmpty}
+              onRetry={refetch}
+            />
+          ) : filteredProducts.length === 0 ? (
             <View className="items-center justify-center py-12">
               <Text className="text-muted text-lg">{t("noProductsFound")}</Text>
             </View>

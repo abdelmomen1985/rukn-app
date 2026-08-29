@@ -20,7 +20,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 };
 
 export default function AssetDetailScreen() {
-  const { assets, spotPrices, deleteAsset } = usePortfolio();
+  const { assets, spotPrices, deleteAsset, getMetalById } = usePortfolio();
   const colors = useColors();
   const { t, lang } = useI18n();
   const router = useRouter();
@@ -39,9 +39,13 @@ export default function AssetDetailScreen() {
   }
 
   const displayName = lang === "ar" && asset.nameAr ? asset.nameAr : asset.name;
-  const pnl = spotPrices ? calculatePnL(asset, spotPrices) : null;
+  const metal = getMetalById(asset.metalType);
+  const pnl = spotPrices && metal ? calculatePnL(asset, spotPrices, metal) : null;
   const weightGrams = getWeightInGrams(asset.weightValue, asset.weightUnit);
-  const purityLabel = asset.metalType === "gold" ? `${asset.karat}K Gold` : `${asset.silverPurity} Silver`;
+  const metalName = metal ? (lang === "ar" ? metal.nameAr : metal.name) : "";
+  const purityLabel = metalName
+    ? `${asset.purityLabel} ${metalName}`
+    : `${asset.purityLabel}`;
   const purchasedOn = new Date(asset.purchaseDate).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", {
     year: "numeric",
     month: "long",

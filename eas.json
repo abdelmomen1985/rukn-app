@@ -1,0 +1,47 @@
+{
+  "cli": {
+    "version": ">= 15.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_MEDUSA_URL": "http://localhost:9000"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_MEDUSA_URL": "https://rknadmin.kayanprojects.online",
+        "EXPO_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_375af1650d3fc81e3b35342130536b67fb37aba13f384f16bd3e1319e67cbaa1"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_MEDUSA_URL": "https://rknadmin.kayanprojects.online",
+        "EXPO_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_375af1650d3fc81e3b35342130536b67fb37aba13f384f16bd3e1319e67cbaa1",
+        "EXPO_PUBLIC_WEB_ORIGIN": "https://REPLACE-WEB-ORIGIN",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "REPLACE@support.example",
+        "EXPO_PUBLIC_PRIVACY_EMAIL": "REPLACE@privacy.example",
+        "EXPO_PUBLIC_LEGAL_ENTITY": "REPLACE_LEGAL_ENTITY",
+        "EXPO_PUBLIC_WHATSAPP": "966000000000"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "REPLACE@apple.example",
+        "ascAppId": "REPLACE_ASC_APP_ID",
+        "appleTeamId": "REPLACE_TEAM_ID"
+      }
+    }
+  }
+}

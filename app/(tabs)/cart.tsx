@@ -4,6 +4,7 @@ import { TitleBar } from "@/components/title-bar";
 import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { CTAButton } from "@/components/cta-button";
+import { CatalogState } from "@/components/catalog-state";
 import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -17,7 +18,7 @@ export default function CartScreen() {
   const colors = useColors();
   const { t, isRTL } = useI18n();
   const router = useRouter();
-  const { products } = useStoreCatalog();
+  const { products, isLoading, error, isEmpty, refetch } = useStoreCatalog();
   const [cart, setCart] = useState<Set<string>>(new Set());
 
   useFocusEffect(
@@ -61,7 +62,7 @@ export default function CartScreen() {
     <ScreenContainer className="bg-background">
       <TitleBar />
       <View className="flex-1 px-6 py-6">
-        {cartProducts.length === 0 ? (
+        {cart.size === 0 ? (
           <View className="flex-1 items-center justify-center gap-4">
             <LottieView
               source={require("@/assets/animations/empty-cart.json")}
@@ -74,6 +75,14 @@ export default function CartScreen() {
               {t("cartEmptySubtitle")}
             </Text>
           </View>
+        ) : isLoading || error || isEmpty ? (
+          <CatalogState
+            isLoading={isLoading}
+            error={error}
+            isEmpty={isEmpty}
+            onRetry={refetch}
+            emptyIcon="cart"
+          />
         ) : (
           <>
             <FlatList

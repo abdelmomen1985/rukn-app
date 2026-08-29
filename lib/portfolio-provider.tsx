@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { MetalDefinition, PortfolioAsset, SpotPrices } from "@/data/portfolio";
-import { defaultMetals, migrateAsset, mockPortfolioAssets } from "@/data/portfolio";
+import { defaultMetals, migrateAsset } from "@/data/portfolio";
 import { fetchSpotPrices } from "@/lib/gold-price-service";
 import { getCurrentValueSAR, getWeightInGrams } from "@/lib/portfolio-utils";
 
@@ -71,20 +71,17 @@ export function PortfolioProvider({ children }: { children: React.ReactNode }) {
     loadMetals();
   }, []);
 
-  // Load assets from AsyncStorage, applying migration
+  // Load assets from AsyncStorage, applying migration.
+  // The portfolio starts EMPTY on purpose: seeding demo holdings would put fake
+  // purchase prices into every ROI and zakat figure a reviewer screenshots.
   useEffect(() => {
     const loadAssets = async () => {
       try {
         const raw = await AsyncStorage.getItem(ASSETS_KEY);
-        if (raw) {
-          const parsed: any[] = JSON.parse(raw);
-          setAssets(parsed.map(migrateAsset));
-        } else {
-          setAssets(mockPortfolioAssets);
-          await AsyncStorage.setItem(ASSETS_KEY, JSON.stringify(mockPortfolioAssets));
-        }
-      } catch {
-        setAssets(mockPortfolioAssets);
+        setAssets(raw ? (JSON.parse(raw) as any[]).map(migrateAsset) : []);
+      } catch (error) {
+        console.warn("[portfolio] could not read stored assets:", error);
+        setAssets([]);
       }
     };
     loadAssets();

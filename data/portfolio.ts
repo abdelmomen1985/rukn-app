@@ -128,106 +128,37 @@ export interface PortfolioAsset {
   silverPurity?: number | null;
 }
 
-// Migrate an asset loaded from old AsyncStorage format
-export function migrateAsset(raw: any): PortfolioAsset {
-  if (raw.purityFactor !== undefined && raw.purityLabel !== undefined) return raw as PortfolioAsset;
-  let purityFactor = 1;
-  let purityLabel = "Fine";
-  if (raw.metalType === "gold" && raw.karat) {
-    purityFactor = raw.karat / 24;
-    purityLabel = `${raw.karat}K`;
-  } else if (raw.metalType === "silver" && raw.silverPurity) {
-    purityFactor = raw.silverPurity / 1000;
-    purityLabel = String(raw.silverPurity);
+// --- Purity inputs used by the add-asset / converter screens ---
+
+export type MetalType = "gold" | "silver" | "platinum";
+export type GoldKarat = 24 | 22 | 21 | 18 | 14;
+export type SilverPurity = 999 | 925 | 900 | 800;
+
+export const GOLD_KARATS: GoldKarat[] = [24, 22, 21, 18, 14];
+export const SILVER_PURITIES: SilverPurity[] = [999, 925, 900, 800];
+
+/**
+ * Turn the purity a customer picked into the two fields every calculation needs.
+ * Assets are valued through `purityFactor`, so anything written to storage must
+ * carry it — an asset saved without it silently evaluates to NaN.
+ */
+export function resolvePurity(
+  metalType: string,
+  karat?: number | null,
+  fineness?: number | null,
+): { purityLabel: string; purityFactor: number } {
+  if (metalType === "gold" && karat) {
+    return { purityLabel: `${karat}K`, purityFactor: karat / 24 };
   }
-  return { ...raw, purityFactor, purityLabel };
+  if (fineness) {
+    return { purityLabel: String(fineness), purityFactor: fineness / 1000 };
+  }
+  return { purityLabel: "Fine", purityFactor: 1 };
 }
 
-export const mockPortfolioAssets: PortfolioAsset[] = [
-  {
-    id: "asset-001",
-    metalType: "gold",
-    name: "Gold Wedding Ring",
-    nameAr: "خاتم ذهبي للزفاف",
-    category: "ring",
-    weightValue: 5.2,
-    weightUnit: "grams",
-    purityLabel: "21K",
-    purityFactor: 21 / 24,
-    purchasePrice: 2800,
-    purchaseDate: "2024-06-15",
-    makingCharges: 350,
-    vatAmount: 154.5,
-    notes: "Wedding anniversary gift",
-    createdAt: "2024-06-15T10:00:00Z",
-    updatedAt: "2024-06-15T10:00:00Z",
-  },
-  {
-    id: "asset-002",
-    metalType: "gold",
-    name: "Gold Chain Bracelet",
-    nameAr: "سوار سلسلة ذهبية",
-    category: "bracelet",
-    weightValue: 12.5,
-    weightUnit: "grams",
-    purityLabel: "18K",
-    purityFactor: 18 / 24,
-    purchasePrice: 5200,
-    purchaseDate: "2023-12-01",
-    makingCharges: 650,
-    vatAmount: 292.5,
-    createdAt: "2023-12-01T10:00:00Z",
-    updatedAt: "2023-12-01T10:00:00Z",
-  },
-  {
-    id: "asset-003",
-    metalType: "gold",
-    name: "Gold Bar 10g",
-    nameAr: "سبائك ذهبية 10غ",
-    category: "bar",
-    weightValue: 10,
-    weightUnit: "grams",
-    purityLabel: "24K",
-    purityFactor: 1.0,
-    purchasePrice: 4800,
-    purchaseDate: "2025-01-20",
-    makingCharges: 0,
-    vatAmount: 240,
-    createdAt: "2025-01-20T10:00:00Z",
-    updatedAt: "2025-01-20T10:00:00Z",
-  },
-  {
-    id: "asset-004",
-    metalType: "silver",
-    name: "Silver Necklace",
-    nameAr: "قلادة فضية",
-    category: "necklace",
-    weightValue: 25,
-    weightUnit: "grams",
-    purityLabel: "925",
-    purityFactor: 0.925,
-    purchasePrice: 420,
-    purchaseDate: "2025-03-10",
-    makingCharges: 80,
-    vatAmount: 25,
-    createdAt: "2025-03-10T10:00:00Z",
-    updatedAt: "2025-03-10T10:00:00Z",
-  },
-  {
-    id: "asset-005",
-    metalType: "platinum",
-    name: "Platinum Ring",
-    nameAr: "خاتم بلاتين",
-    category: "ring",
-    weightValue: 6,
-    weightUnit: "grams",
-    purityLabel: "950",
-    purityFactor: 0.95,
-    purchasePrice: 3200,
-    purchaseDate: "2024-11-10",
-    makingCharges: 500,
-    vatAmount: 180,
-    createdAt: "2024-11-10T10:00:00Z",
-    updatedAt: "2024-11-10T10:00:00Z",
-  },
-];
+// Migrate an asset loaded from old AsyncStorage format
+export function migrateAsset(raw: any): PortfolioAsset {
+  if (raw?.purityFactor !== undefined && raw?.purityLabel !== undefined) return raw as PortfolioAsset;
+  const { purityLabel, purityFactor } = resolvePurity(raw?.metalType, raw?.karat, raw?.silverPurity);
+  return { ...raw, purityFactor, purityLabel };
+}

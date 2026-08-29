@@ -48,6 +48,8 @@ export default function CheckoutScreen() {
   }, []);
 
   const cartProducts = products.filter((p) => cartIds.includes(p.id));
+  // Every product in a live catalog carries a Medusa variant id; items without
+  // one cannot be ordered, so they are excluded rather than silently faked.
   const orderable = cartProducts.filter((p) => p.variantId);
   const total = cartProducts.reduce((sum, p) => sum + p.price, 0);
   const canSubmit =
@@ -145,7 +147,7 @@ export default function CheckoutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {orderable.length < cartProducts.length && (
-          <Text className="text-muted text-sm">{t("demoItemsInCart")}</Text>
+          <Text className="text-muted text-sm">{t("productUnavailable")}</Text>
         )}
 
         <TextInput

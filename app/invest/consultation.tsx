@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, TextInput, Alert } from "react-native";
+import { View, ScrollView, Pressable, TextInput, Alert, Linking, Platform } from "react-native";
 import { Text } from "@/components/ui/text";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -7,34 +7,40 @@ import { useI18n } from "@/lib/i18n";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import * as Haptics from "expo-haptics";
+import { trpc } from "@/lib/trpc";
+import { WEB } from "@/lib/brand";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Specialist profile ───────────────────────────────────────────────────────
+// ⚠️ Both stores treat this card as a factual claim. A made-up advisor name or
+// credential is Apple Guideline 2.3.1 / 4.2 and Play "misleading claims".
+//
+// So the person is NOT hard-coded here. Supply the real advisor through the EAS
+// production profile / .env; until then the card shows a generic, truthful
+// label ("Rukn Thamin gold specialist") rather than inventing someone:
+//
+//   EXPO_PUBLIC_CONSULTANT_NAME=…        EXPO_PUBLIC_CONSULTANT_NAME_AR=…
+//   EXPO_PUBLIC_CONSULTANT_TITLE=…       EXPO_PUBLIC_CONSULTANT_TITLE_AR=…
+//   EXPO_PUBLIC_CONSULTATION_FEE_SAR=350
+//
+// Replace the avatar emoji with a photo the business has the rights to.
+// Fabricated reviews/ratings were deleted — Apple Guideline 4.2 & 2.1 both bite.
 
-interface TimeSlot {
-  id: string;
-  time: string;
-  available: boolean;
-}
+const CONSULTANT_NAME = process.env.EXPO_PUBLIC_CONSULTANT_NAME?.trim() || "";
+const CONSULTANT = {
+  /** False until a real advisor is configured; the UI then stays generic. */
+  isNamed: CONSULTANT_NAME.length > 0,
+  name: CONSULTANT_NAME,
+  nameAr: process.env.EXPO_PUBLIC_CONSULTANT_NAME_AR?.trim() || CONSULTANT_NAME,
+  title: process.env.EXPO_PUBLIC_CONSULTANT_TITLE?.trim() || "",
+  titleAr: process.env.EXPO_PUBLIC_CONSULTANT_TITLE_AR?.trim() || "",
+  pricePerSession: Number(process.env.EXPO_PUBLIC_CONSULTATION_FEE_SAR ?? 350),
+  avatar: "💼",
+  specialties: ["Market Analysis", "Portfolio Strategy", "Buying & Selling"],
+  specialtiesAr: ["تحليل السوق", "استراتيجية المحفظة", "الشراء والبيع"],
+};
 
-// ── Mock data ─────────────────────────────────────────────────────────────────
-
-const CONSULTANTS = [
-  {
-    id: "c1",
-    name: "Dr. Ahmed Al-Rashidi",
-    nameAr: "د. أحمد الراشدي",
-    title: "Senior Gold Investment Advisor",
-    titleAr: "مستشار استثمار ذهب أول",
-    rating: 4.9,
-    reviews: 312,
-    pricePerSession: 350,
-    avatar: "💼",
-    specialties: ["Market Analysis", "Portfolio Strategy", "Gold ETFs"],
-    specialtiesAr: ["تحليل السوق", "استراتيجية المحفظة", "صناديق الذهب"],
-  },
-];
-
-const CONSULTANT = CONSULTANTS[0];
+/** The session is paid for off-platform (human service — Play/Apple IAP exempt). */
+const SESSION_DURATION_LABEL = "45 min";
 
 function buildWeekDays(): { date: Date; label: string; dayLabel: string }[] {
   const today = new Date();
@@ -51,18 +57,10 @@ function buildWeekDays(): { date: Date; label: string; dayLabel: string }[] {
 
 const WEEK_DAYS = buildWeekDays();
 
-const TIME_SLOTS: TimeSlot[] = [
-  { id: "t1", time: "09:00", available: true },
-  { id: "t2", time: "10:00", available: false },
-  { id: "t3", time: "11:00", available: true },
-  { id: "t4", time: "12:00", available: true },
-  { id: "t5", time: "14:00", available: false },
-  { id: "t6", time: "15:00", available: true },
-  { id: "t7", time: "16:00", available: true },
-  { id: "t8", time: "17:00", available: false },
-];
+/** Times the customer can *ask* for. Not an availability calendar. */
+const PREFERRED_TIMES = ["09:00", "10:00", "11:00", "12:00", "14:00", "15:00", "16:00", "17:00", "19:00", "20:00"];
 
-// ── Sub-components ────────────────────────────────────────────────────────────
+// ── Small building blocks ────────────────────────────────────────────────────
 
 function SectionLabel({ title }: { title: string }) {
   const colors = useColors();
@@ -102,72 +100,166 @@ function Card({ children, style }: { children: React.ReactNode; style?: object }
   );
 }
 
-// ── Screen ────────────────────────────────────────────────────────────────────
+function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
+  const colors = useColors();
+  return (
+    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+      <Text style={{ color: colors.muted, fontSize: 13 }}>{label}</Text>
+      <Text
+        style={{
+          color: highlight ? "#D4AF37" : colors.foreground,
+          fontSize: highlight ? 16 : 13,
+          fontWeight: highlight ? "700" : "600",
+        }}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
 
-type Step = "schedule" | "payment" | "confirmed";
+function HeaderBar({ title, onBack }: { title: string; onBack: () => void }) {
+  const colors = useColors();
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 0.5,
+        borderBottomColor: colors.border,
+      }}
+    >
+      <Pressable onPress={onBack} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+        <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
+      </Pressable>
+      <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "700" }}>{title}</Text>
+    </View>
+  );
+}
+
+function GoldButton({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => ({
+        opacity: pressed || disabled ? 0.75 : 1,
+        backgroundColor: "#07352b",
+        borderRadius: 14,
+        paddingVertical: 18,
+        alignItems: "center",
+      })}
+    >
+      <Text style={{ color: "#D4AF37", fontSize: 16, fontWeight: "700" }}>{label}</Text>
+    </Pressable>
+  );
+}
+
+// ── Screen ───────────────────────────────────────────────────────────────────
+
+type Status = "idle" | "sending" | "sent" | "failed";
 
 export default function ConsultationScreen() {
   const colors = useColors();
   const { t, lang } = useI18n();
   const router = useRouter();
+  const isRTL = lang === "ar";
+
+  // Falls back to a generic label while no real advisor is configured, so the
+  // app never presents an invented person as a credentialled specialist.
+  const consultantName = CONSULTANT.isNamed
+    ? (lang === "ar" ? CONSULTANT.nameAr : CONSULTANT.name)
+    : t("consultationSpecialistGeneric");
+  const consultantTitle = CONSULTANT.isNamed
+    ? (lang === "ar" ? CONSULTANT.titleAr : CONSULTANT.title)
+    : "";
 
   const [selectedDayIdx, setSelectedDayIdx] = useState<number | null>(null);
-  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [step, setStep] = useState<Step>("schedule");
+  const [times, setTimes] = useState<string[]>([]);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
+  const [status, setStatus] = useState<Status>("idle");
+  const [reference, setReference] = useState<string | null>(null);
 
-  // Payment form state
-  const [cardHolder, setCardHolder] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [processing, setProcessing] = useState(false);
-
-  const isRTL = lang === "ar";
-  const consultant = CONSULTANT;
-
-  const handleDayPress = (idx: number) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedDayIdx(idx);
-    setSelectedSlot(null);
-  };
-
-  const handleSlotPress = (slot: TimeSlot) => {
-    if (!slot.available) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedSlot(slot);
-  };
-
-  const handleProceedToPayment = () => {
-    if (selectedDayIdx === null || !selectedSlot) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    setStep("payment");
-  };
-
-  const handlePay = () => {
-    if (!cardHolder.trim() || cardNumber.replace(/\s/g, "").length < 16 || expiry.length < 5 || cvv.length < 3) {
-      Alert.alert(t("consultationPaymentError"), t("consultationPaymentErrorMsg"));
-      return;
-    }
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-    setProcessing(true);
-    setTimeout(() => {
-      setProcessing(false);
-      setStep("confirmed");
-    }, 1800);
-  };
-
-  const formatCardNumber = (text: string) => {
-    const digits = text.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(.{4})/g, "$1 ").trim();
-  };
-
-  const formatExpiry = (text: string) => {
-    const digits = text.replace(/\D/g, "").slice(0, 4);
-    if (digits.length >= 3) return digits.slice(0, 2) + "/" + digits.slice(2);
-    return digits;
-  };
+  const mutation = trpc.consultation.request.useMutation({
+    onSuccess: (result) => {
+      if (result.received && "reference" in result && result.reference) {
+        setReference(result.reference);
+        setStatus("sent");
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      } else {
+        setStatus("failed");
+      }
+    },
+    onError: () => setStatus("failed"),
+  });
 
   const selectedDay = selectedDayIdx !== null ? WEEK_DAYS[selectedDayIdx] : null;
+
+  const toggleTime = (time: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setTimes((prev) =>
+      prev.includes(time) ? prev.filter((x) => x !== time) : [...prev, time].sort(),
+    );
+  };
+
+  const summaryText = () =>
+    [
+      `Name: ${fullName}`,
+      `Email: ${email || "-"}`,
+      `Phone: ${phone || "-"}`,
+      `Preferred date: ${selectedDay ? selectedDay.date.toDateString() : "-"}`,
+      `Preferred times: ${times.join(", ") || "-"}`,
+      `Notes: ${notes || "-"}`,
+    ].join("\n");
+
+  const contactFallback = (channel: "email" | "whatsapp") => {
+    const subject = encodeURIComponent("Gold consultation request");
+    const body = encodeURIComponent(summaryText());
+    const url =
+      channel === "email"
+        ? `mailto:${WEB.support}?subject=${subject}&body=${body}`
+        : `https://wa.me/${WEB.whatsapp}?text=${encodeURIComponent(
+            `${subject}: ${isRTL ? "طلب استشارة" : "Consultation request"}\n\n${summaryText()}`,
+          )}`;
+    Linking.openURL(url).catch(() =>
+      Alert.alert(t("consultationFailedTitle"), t("consultationSendFailed")),
+    );
+  };
+
+  const handleSubmit = () => {
+    const hasContact =
+      email.includes("@") || phone.replace(/\D/g, "").length >= 8;
+    if (fullName.trim().length < 2 || !hasContact) {
+      Alert.alert(t("consultationFailedTitle"), t("consultationRequiredFields"));
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setStatus("sending");
+    mutation.mutate({
+      fullName: fullName.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      preferredDate: selectedDay ? selectedDay.date.toISOString().slice(0, 10) : undefined,
+      preferredTimes: times,
+      notes: notes.trim() || undefined,
+      language: lang,
+      sessionFeeSar: CONSULTANT.pricePerSession,
+    });
+  };
 
   const inputStyle = {
     backgroundColor: colors.background,
@@ -178,251 +270,101 @@ export default function ConsultationScreen() {
     color: colors.foreground,
     fontSize: 15,
     fontWeight: "500" as const,
+    writingDirection: isRTL ? ("rtl" as const) : ("ltr" as const),
   };
 
-  // ── Confirmed screen ──────────────────────────────────────────────────────
+  // ── Sent screen ─────────────────────────────────────────────────────────────
 
-  if (step === "confirmed") {
+  if (status === "sent") {
     return (
       <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderBottomWidth: 0.5,
-            borderBottomColor: colors.border,
-          }}
+        <HeaderBar title={t("consultationTitle")} onBack={() => router.back()} />
+        <ScrollView
+          contentContainerStyle={{ padding: 24, alignItems: "center", gap: 20, paddingBottom: 60 }}
         >
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "700" }}>
-            {t("consultationTitle")}
-          </Text>
-        </View>
-
-        <ScrollView contentContainerStyle={{ padding: 24, alignItems: "center", gap: 20, paddingBottom: 60 }}>
-          <View style={{ width: 100, height: 100, borderRadius: 50, backgroundColor: "#D1FAE5", alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontSize: 48 }}>✅</Text>
+          <View
+            style={{
+              width: 96,
+              height: 96,
+              borderRadius: 48,
+              backgroundColor: "rgba(212,175,55,0.12)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconSymbol name="checkmark.circle" size={44} color="#D4AF37" />
           </View>
-          <Text style={{ color: colors.foreground, fontSize: 22, fontWeight: "700", textAlign: "center" }}>
-            {t("consultationConfirmedTitle")}
+          <Text
+            style={{ color: colors.foreground, fontSize: 22, fontWeight: "700", textAlign: "center" }}
+          >
+            {t("consultationRequestedTitle")}
           </Text>
-          <Text style={{ color: colors.muted, fontSize: 15, textAlign: "center", lineHeight: 22 }}>
-            {t("consultationConfirmedSubtitle")}
+          <Text
+            style={{ color: colors.muted, fontSize: 15, textAlign: "center", lineHeight: 22 }}
+          >
+            {t("consultationRequestedSubtitle")}
           </Text>
 
-          {/* Booking summary */}
           <Card style={{ width: "100%" }}>
             <SectionLabel title={t("consultationBookingSummary")} />
             <View style={{ gap: 10 }}>
-              <Row label={t("consultationConsultant")} value={lang === "ar" ? consultant.nameAr : consultant.name} />
+              {reference ? (
+                <Row label={t("consultationReference")} value={reference} />
+              ) : null}
+              <Row
+                label={t("consultationConsultant")}
+                value={consultantName}
+              />
               <Row
                 label={t("consultationDate")}
-                value={selectedDay ? selectedDay.date.toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { weekday: "long", month: "long", day: "numeric" }) : ""}
+                value={
+                  selectedDay
+                    ? selectedDay.date.toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "—"
+                }
               />
-              <Row label={t("consultationTime")} value={selectedSlot?.time ?? ""} />
-              <Row label={t("consultationFee")} value={`${consultant.pricePerSession} SAR`} highlight />
+              <Row label={t("consultationTime")} value={times.join(", ") || "—"} />
+              <Row
+                label={t("consultationFee")}
+                value={`${CONSULTANT.pricePerSession} SAR`}
+                highlight
+              />
             </View>
           </Card>
 
           <Text style={{ color: colors.muted, fontSize: 13, textAlign: "center", lineHeight: 20 }}>
-            {t("consultationConfirmationNote")}
+            {t("consultationFeeNote").replace("{fee}", String(CONSULTANT.pricePerSession))}
           </Text>
 
-          <Pressable
-            onPress={() => router.back()}
-            style={({ pressed }) => ({
-              opacity: pressed ? 0.85 : 1,
-              backgroundColor: "#07352b",
-              borderRadius: 14,
-              paddingVertical: 16,
-              paddingHorizontal: 40,
-              alignItems: "center",
-              width: "100%",
-            })}
-          >
-            <Text style={{ color: "#D4AF37", fontSize: 16, fontWeight: "700" }}>{t("consultationBackToPortfolio")}</Text>
-          </Pressable>
-        </ScrollView>
-      </ScreenContainer>
-    );
-  }
-
-  // ── Payment screen ────────────────────────────────────────────────────────
-
-  if (step === "payment") {
-    return (
-      <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 12,
-            paddingHorizontal: 16,
-            paddingVertical: 12,
-            borderBottomWidth: 0.5,
-            borderBottomColor: colors.border,
-          }}
-        >
-          <Pressable onPress={() => setStep("schedule")} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "700" }}>
-            {t("consultationPayment")}
-          </Text>
-        </View>
-
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 60 }}>
-
-          {/* Booking summary pill */}
-          <Card>
-            <SectionLabel title={t("consultationBookingSummary")} />
-            <Row label={t("consultationConsultant")} value={lang === "ar" ? consultant.nameAr : consultant.name} />
-            <Row
-              label={t("consultationDate")}
-              value={selectedDay ? selectedDay.date.toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { weekday: "short", month: "short", day: "numeric" }) : ""}
+          <View style={{ width: "100%", gap: 12 }}>
+            <GoldButton
+              label={t("consultationBackToPortfolio")}
+              onPress={() => router.back()}
             />
-            <Row label={t("consultationTime")} value={selectedSlot?.time ?? ""} />
-            <View style={{ height: 1, backgroundColor: colors.border, marginVertical: 8 }} />
-            <Row label={t("consultationFee")} value={`${consultant.pricePerSession} SAR`} highlight />
-          </Card>
-
-          {/* Card form */}
-          <Card>
-            <SectionLabel title={t("consultationCardDetails")} />
-
-            {/* Card visual */}
-            <View
-              style={{
-                backgroundColor: "#07352b",
-                borderRadius: 16,
-                padding: 20,
-                marginBottom: 16,
-                gap: 12,
-              }}
-            >
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 12 }}>{t("consultationCard")}</Text>
-                <Text style={{ color: "#D4AF37", fontSize: 18 }}>💳</Text>
-              </View>
-              <Text style={{ color: "#D4AF37", fontSize: 20, fontWeight: "700", letterSpacing: 3 }}>
-                {cardNumber || "•••• •••• •••• ••••"}
+            <Pressable onPress={() => setStatus("idle")} style={{ paddingVertical: 8 }}>
+              <Text style={{ color: colors.muted, fontSize: 14, textAlign: "center" }}>
+                {t("consultationNewRequest")}
               </Text>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>{cardHolder || t("consultationCardHolderPlaceholder")}</Text>
-                <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>{expiry || "MM/YY"}</Text>
-              </View>
-            </View>
-
-            <View style={{ gap: 12 }}>
-              <TextInput
-                value={cardHolder}
-                onChangeText={setCardHolder}
-                placeholder={t("consultationCardHolder")}
-                placeholderTextColor={colors.muted}
-                autoCapitalize="characters"
-                style={inputStyle}
-              />
-              <TextInput
-                value={cardNumber}
-                onChangeText={(t) => setCardNumber(formatCardNumber(t))}
-                placeholder={t("consultationCardNumber")}
-                placeholderTextColor={colors.muted}
-                keyboardType="number-pad"
-                maxLength={19}
-                style={inputStyle}
-              />
-              <View style={{ flexDirection: "row", gap: 12 }}>
-                <TextInput
-                  value={expiry}
-                  onChangeText={(t) => setExpiry(formatExpiry(t))}
-                  placeholder="MM/YY"
-                  placeholderTextColor={colors.muted}
-                  keyboardType="number-pad"
-                  maxLength={5}
-                  style={[inputStyle, { flex: 1 }]}
-                />
-                <TextInput
-                  value={cvv}
-                  onChangeText={(t) => setCvv(t.replace(/\D/g, "").slice(0, 4))}
-                  placeholder="CVV"
-                  placeholderTextColor={colors.muted}
-                  keyboardType="number-pad"
-                  secureTextEntry
-                  maxLength={4}
-                  style={[inputStyle, { flex: 1 }]}
-                />
-              </View>
-            </View>
-          </Card>
-
-          {/* Secure note */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 4 }}>
-            <IconSymbol name="lock.fill" size={13} color={colors.muted} />
-            <Text style={{ color: colors.muted, fontSize: 12 }}>{t("consultationSecurePayment")}</Text>
+            </Pressable>
           </View>
-
-          {/* Pay button */}
-          <Pressable
-            onPress={handlePay}
-            disabled={processing}
-            style={({ pressed }) => ({
-              opacity: pressed || processing ? 0.8 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
-              backgroundColor: "#07352b",
-              borderRadius: 14,
-              paddingVertical: 18,
-              alignItems: "center",
-            })}
-          >
-            <Text style={{ color: "#D4AF37", fontSize: 16, fontWeight: "700" }}>
-              {processing ? t("consultationProcessing") : `${t("consultationPay")} ${consultant.pricePerSession} SAR`}
-            </Text>
-          </Pressable>
         </ScrollView>
       </ScreenContainer>
     );
   }
 
-  // ── Schedule screen (default) ─────────────────────────────────────────────
+  // ── Request form ────────────────────────────────────────────────────────────
 
   return (
     <ScreenContainer edges={["top", "left", "right", "bottom"]} className="bg-background">
-      {/* Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 12,
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          borderBottomWidth: 0.5,
-          borderBottomColor: colors.border,
-        }}
-      >
-        <Pressable onPress={() => router.back()} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
-          <IconSymbol name="chevron.left" size={24} color={colors.foreground} />
-        </Pressable>
-        <Text style={{ color: colors.foreground, fontSize: 18, fontWeight: "700" }}>
-          {t("consultationTitle")}
-        </Text>
-      </View>
+      <HeaderBar title={t("consultationTitle")} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 60 }}>
-
-        {/* Consultant card */}
-        <View
-          style={{
-            backgroundColor: "#07352b",
-            borderRadius: 20,
-            padding: 20,
-            gap: 12,
-          }}
-        >
+        {/* Specialist card */}
+        <View style={{ backgroundColor: "#07352b", borderRadius: 20, padding: 20, gap: 12 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
             <View
               style={{
@@ -436,20 +378,25 @@ export default function ConsultationScreen() {
                 borderColor: "#D4AF37",
               }}
             >
-              <Text style={{ fontSize: 28 }}>{consultant.avatar}</Text>
+              <Text style={{ fontSize: 28 }}>{CONSULTANT.avatar}</Text>
             </View>
             <View style={{ flex: 1 }}>
               <Text style={{ color: "#D4AF37", fontSize: 17, fontWeight: "700" }}>
-                {lang === "ar" ? consultant.nameAr : consultant.name}
+                {consultantName}
               </Text>
-              <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>
-                {lang === "ar" ? consultant.titleAr : consultant.title}
+              {consultantTitle ? (
+                <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 2 }}>
+                  {consultantTitle}
+                </Text>
+              ) : null}
+              <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, marginTop: 2 }}>
+                {SESSION_DURATION_LABEL} · {t("consultationPerSession")}
               </Text>
             </View>
           </View>
 
           <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
-            {(lang === "ar" ? consultant.specialtiesAr : consultant.specialties).map((s) => (
+            {(lang === "ar" ? CONSULTANT.specialtiesAr : CONSULTANT.specialties).map((s) => (
               <View
                 key={s}
                 style={{
@@ -466,22 +413,16 @@ export default function ConsultationScreen() {
             ))}
           </View>
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-              <Text style={{ color: "#FBBF24", fontSize: 14 }}>★</Text>
-              <Text style={{ color: "#fff", fontSize: 14, fontWeight: "600" }}>{consultant.rating}</Text>
-              <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>({consultant.reviews})</Text>
-            </View>
+          <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
             <View style={{ alignItems: isRTL ? "flex-start" : "flex-end" }}>
-              <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 11 }}>{t("consultationPerSession")}</Text>
               <Text style={{ color: "#D4AF37", fontSize: 20, fontWeight: "700" }}>
-                {consultant.pricePerSession} SAR
+                {CONSULTANT.pricePerSession} SAR
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Day picker */}
+        {/* Preferred date */}
         <Card>
           <SectionLabel title={t("consultationSelectDate")} />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -490,7 +431,10 @@ export default function ConsultationScreen() {
               return (
                 <Pressable
                   key={idx}
-                  onPress={() => handleDayPress(idx)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedDayIdx(idx);
+                  }}
                   style={{
                     width: 56,
                     paddingVertical: 10,
@@ -502,10 +446,18 @@ export default function ConsultationScreen() {
                     gap: 4,
                   }}
                 >
-                  <Text style={{ color: selected ? "rgba(255,255,255,0.65)" : colors.muted, fontSize: 11, fontWeight: "600" }}>
+                  <Text
+                    style={{
+                      color: selected ? "rgba(255,255,255,0.65)" : colors.muted,
+                      fontSize: 11,
+                      fontWeight: "600",
+                    }}
+                  >
                     {day.dayLabel}
                   </Text>
-                  <Text style={{ color: selected ? "#D4AF37" : colors.foreground, fontSize: 18, fontWeight: "700" }}>
+                  <Text
+                    style={{ color: selected ? "#D4AF37" : colors.foreground, fontSize: 17, fontWeight: "700" }}
+                  >
                     {day.label}
                   </Text>
                 </Pressable>
@@ -514,110 +466,168 @@ export default function ConsultationScreen() {
           </ScrollView>
         </Card>
 
-        {/* Time slots */}
-        {selectedDayIdx !== null && (
-          <Card>
-            <SectionLabel title={t("consultationSelectTime")} />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-              {TIME_SLOTS.map((slot) => {
-                const selected = selectedSlot?.id === slot.id;
-                return (
-                  <Pressable
-                    key={slot.id}
-                    onPress={() => handleSlotPress(slot)}
-                    disabled={!slot.available}
-                    style={{
-                      width: "22%",
-                      paddingVertical: 10,
-                      borderRadius: 12,
-                      alignItems: "center",
-                      backgroundColor: !slot.available
-                        ? colors.background
-                        : selected
-                        ? "#07352b"
-                        : colors.background,
-                      borderWidth: 1,
-                      borderColor: !slot.available
-                        ? colors.border
-                        : selected
-                        ? "#07352b"
-                        : colors.border,
-                      opacity: slot.available ? 1 : 0.4,
-                    }}
-                  >
-                    <Text
-                      style={{
-                        color: selected ? "#D4AF37" : colors.foreground,
-                        fontSize: 13,
-                        fontWeight: "600",
-                      }}
-                    >
-                      {slot.time}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginTop: 8 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: "#07352b" }} />
-                <Text style={{ color: colors.muted, fontSize: 11 }}>{t("consultationAvailable")}</Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border }} />
-                <Text style={{ color: colors.muted, fontSize: 11 }}>{t("consultationBooked")}</Text>
-              </View>
-            </View>
-          </Card>
-        )}
-
-        {/* What to expect */}
+        {/* Preferred times */}
         <Card>
-          <SectionLabel title={t("consultationWhatToExpect")} />
-          {[
-            { icon: "chart.line.uptrend.xyaxis", labelKey: "consultationExpect1" as const },
-            { icon: "lightbulb", labelKey: "consultationExpect2" as const },
-            { icon: "lock.shield", labelKey: "consultationExpect3" as const },
-          ].map(({ icon, labelKey }) => (
-            <View key={labelKey} style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, paddingVertical: 6 }}>
-              <IconSymbol name={icon as any} size={18} color="#D4AF37" />
-              <Text style={{ color: colors.foreground, fontSize: 13, flex: 1, lineHeight: 18 }}>{t(labelKey)}</Text>
-            </View>
-          ))}
+          <SectionLabel title={t("consultationPreferredTimes")} />
+          <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 18, marginBottom: 12 }}>
+            {t("consultationPreferredTimesHint")}
+          </Text>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {PREFERRED_TIMES.map((time) => {
+              const selected = times.includes(time);
+              return (
+                <Pressable
+                  key={time}
+                  onPress={() => toggleTime(time)}
+                  style={{
+                    paddingHorizontal: 14,
+                    paddingVertical: 9,
+                    borderRadius: 12,
+                    backgroundColor: selected ? "#07352b" : colors.background,
+                    borderWidth: 1,
+                    borderColor: selected ? "#07352b" : colors.border,
+                  }}
+                >
+                  <Text style={{ color: selected ? "#D4AF37" : colors.foreground, fontSize: 13, fontWeight: "600" }}>
+                    {time}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </Card>
 
-        {/* CTA */}
-        <Pressable
-          onPress={handleProceedToPayment}
-          disabled={selectedDayIdx === null || !selectedSlot}
-          style={({ pressed }) => ({
-            opacity: selectedDayIdx === null || !selectedSlot ? 0.45 : pressed ? 0.85 : 1,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-            backgroundColor: "#07352b",
-            borderRadius: 14,
-            paddingVertical: 18,
-            alignItems: "center",
-          })}
-        >
-          <Text style={{ color: "#D4AF37", fontSize: 16, fontWeight: "700" }}>
-            {t("consultationBookAndPay")}
+        {/* What the session covers */}
+        <Card>
+          <SectionLabel title={t("consultationWhatToExpect")} />
+          <View style={{ gap: 10 }}>
+            {[t("consultationExpect1"), t("consultationExpect2"), t("consultationExpect3")].map(
+              (item) => (
+                <View key={item} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start" }}>
+                  <IconSymbol name="checkmark.circle" size={16} color={colors.primary} />
+                  <Text
+                    style={{
+                      color: colors.foreground,
+                      fontSize: 13,
+                      lineHeight: 20,
+                      flex: 1,
+                    }}
+                  >
+                    {item}
+                  </Text>
+                </View>
+              ),
+            )}
+          </View>
+        </Card>
+
+        {/* Contact details */}
+        <Card>
+          <SectionLabel title={t("consultationYourDetails")} />
+          <View style={{ gap: 12 }}>
+            <TextInput
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder={t("fullName")}
+              placeholderTextColor={colors.muted}
+              autoCapitalize="words"
+              textContentType={Platform.OS === "ios" ? "name" : undefined}
+              style={inputStyle}
+            />
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder={t("email")}
+              placeholderTextColor={colors.muted}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              textContentType={Platform.OS === "ios" ? "emailAddress" : undefined}
+              style={inputStyle}
+            />
+            <TextInput
+              value={phone}
+              onChangeText={setPhone}
+              placeholder={t("phoneNumber")}
+              placeholderTextColor={colors.muted}
+              keyboardType="phone-pad"
+              autoCapitalize="none"
+              textContentType={Platform.OS === "ios" ? "telephoneNumber" : undefined}
+              style={inputStyle}
+            />
+            <TextInput
+              value={notes}
+              onChangeText={setNotes}
+              placeholder={t("consultationNotesPlaceholder")}
+              placeholderTextColor={colors.muted}
+              multiline
+              numberOfLines={4}
+              style={[inputStyle, { minHeight: 96, textAlignVertical: "top" }]}
+            />
+          </View>
+        </Card>
+
+        {/* Failed: honest error + direct channels, form data is preserved */}
+        {status === "failed" ? (
+          <Card style={{ borderColor: colors.error, gap: 12 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <IconSymbol name="xmark.circle" size={18} color={colors.error} />
+              <Text style={{ color: colors.foreground, fontSize: 15, fontWeight: "700" }}>
+                {t("consultationFailedTitle")}
+              </Text>
+            </View>
+            <Text style={{ color: colors.muted, fontSize: 13, lineHeight: 20 }}>
+              {t("consultationSendFailed")}
+            </Text>
+            <View style={{ flexDirection: "row", gap: 10 }}>
+              <View style={{ flex: 1 }}>
+                <GoldButton label={t("retry")} onPress={handleSubmit} />
+              </View>
+              <Pressable
+                onPress={() => contactFallback("email")}
+                style={{
+                  flex: 1,
+                  borderRadius: 14,
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  paddingVertical: 18,
+                  alignItems: "center",
+                }}
+              >
+                <Text style={{ color: colors.foreground, fontSize: 15, fontWeight: "700" }}>
+                  {t("emailSupport")}
+                </Text>
+              </Pressable>
+            </View>
+            <Pressable
+              onPress={() => contactFallback("whatsapp")}
+              style={{ paddingVertical: 6, alignItems: "center" }}
+            >
+              <Text style={{ color: colors.primary, fontSize: 14, fontWeight: "600" }}>
+                {t("consultationContactUs")} · WhatsApp
+              </Text>
+            </Pressable>
+          </Card>
+        ) : null}
+
+        {/* Fee note: no card form, no fake payment */}
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 8, paddingHorizontal: 4 }}>
+          <IconSymbol name="info.circle" size={15} color={colors.muted} />
+          <Text style={{ color: colors.muted, fontSize: 12, lineHeight: 18, flex: 1 }}>
+            {t("consultationFeeNote").replace("{fee}", String(CONSULTANT.pricePerSession))}
           </Text>
-        </Pressable>
+        </View>
+
+        <GoldButton
+          label={status === "sending" ? t("consultationSubmitting") : t("consultationSubmit")}
+          onPress={handleSubmit}
+          disabled={status === "sending"}
+        />
+
+        <Text style={{ color: colors.muted, fontSize: 11, lineHeight: 17, textAlign: "center" }}>
+          {t("consultationPriceDisclaimer")}
+        </Text>
       </ScrollView>
     </ScreenContainer>
-  );
-}
-
-// ── Helper ────────────────────────────────────────────────────────────────────
-
-function Row({ label, value, highlight }: { label: string; value: string; highlight?: boolean }) {
-  const colors = useColors();
-  return (
-    <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 5 }}>
-      <Text style={{ color: colors.muted, fontSize: 13, flex: 1 }}>{label}</Text>
-      <Text style={{ color: highlight ? "#D4AF37" : colors.foreground, fontSize: 14, fontWeight: highlight ? "700" : "500" }}>
-        {value}
-      </Text>
-    </View>
   );
 }

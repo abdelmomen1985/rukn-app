@@ -20,7 +20,7 @@ import type { EdgeInsets, Metrics, Rect } from "react-native-safe-area-context";
 import { trpc, createTRPCClient } from "@/lib/trpc";
 import { initManusRuntime, subscribeSafeAreaInsets } from "@/lib/_core/manus-runtime";
 import { I18nProvider, useI18n } from "@/lib/i18n";
-import { MockDataProvider } from "@/lib/mock-data-provider";
+import { assertPublishableBranding } from "@/lib/brand";
 import { PortfolioProvider } from "@/lib/portfolio-provider";
 import { TripsProvider } from "@/lib/trips-provider";
 import * as CairoFont from "@expo-google-fonts/cairo";
@@ -87,6 +87,9 @@ export default function RootLayout() {
   // Initialize Manus runtime for cookie injection from parent container
   useEffect(() => {
     initManusRuntime();
+    // Loud dev-time reminder that the store-facing URLs are still placeholders;
+    // `eas build --profile production` hard-fails on the same condition.
+    assertPublishableBranding();
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
@@ -163,7 +166,6 @@ export default function RootLayout() {
   if (shouldOverrideSafeArea) {
     return (
       <I18nProvider>
-        <MockDataProvider>
         <PortfolioProvider>
         <TripsProvider>
         <ThemeProvider>
@@ -177,15 +179,13 @@ export default function RootLayout() {
         </ThemeProvider>
         </TripsProvider>
         </PortfolioProvider>
-        </MockDataProvider>
       </I18nProvider>
     );
   }
 
   return (
     <I18nProvider>
-      <MockDataProvider>
-        <PortfolioProvider>
+      <PortfolioProvider>
           <TripsProvider>
             <ThemeProvider>
               <SafeAreaProvider initialMetrics={providerInitialMetrics}>
@@ -194,7 +194,6 @@ export default function RootLayout() {
             </ThemeProvider>
           </TripsProvider>
         </PortfolioProvider>
-      </MockDataProvider>
     </I18nProvider>
   );
 }

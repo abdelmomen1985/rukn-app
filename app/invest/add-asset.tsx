@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useState, useEffect } from "react";
 import type { MetalType, WeightUnit, GoldKarat, SilverPurity } from "@/data/portfolio";
+import { resolvePurity } from "@/data/portfolio";
 import * as Haptics from "expo-haptics";
 
 const CATEGORIES = ["ring", "bracelet", "necklace", "earring", "bar", "coin"];
@@ -92,13 +93,21 @@ export default function AddAssetScreen() {
   const editingAsset = assetId ? assets.find((a) => a.id === assetId) : null;
 
   // Form state
-  const [metalType, setMetalType] = useState<MetalType>(editingAsset?.metalType ?? "gold");
+  const initialMetal: MetalType =
+    editingAsset?.metalType === "silver" || editingAsset?.metalType === "platinum"
+      ? editingAsset.metalType
+      : "gold";
+  const [metalType, setMetalType] = useState<MetalType>(initialMetal);
   const [name, setName] = useState(editingAsset?.name ?? "");
   const [category, setCategory] = useState<string>(editingAsset?.category ?? "ring");
   const [weightValue, setWeightValue] = useState(editingAsset?.weightValue.toString() ?? "");
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(editingAsset?.weightUnit ?? "grams");
-  const [karat, setKarat] = useState<GoldKarat | null>(editingAsset?.karat ?? 21);
-  const [silverPurity, setSilverPurity] = useState<SilverPurity | null>(editingAsset?.silverPurity ?? 925);
+  const [karat, setKarat] = useState<GoldKarat | null>(
+    (editingAsset?.karat as GoldKarat | null | undefined) ?? 21,
+  );
+  const [silverPurity, setSilverPurity] = useState<SilverPurity | null>(
+    (editingAsset?.silverPurity as SilverPurity | null | undefined) ?? 925,
+  );
   const [purchasePrice, setPurchasePrice] = useState(editingAsset?.purchasePrice.toString() ?? "");
   const [purchaseDate, setPurchaseDate] = useState(editingAsset?.purchaseDate ?? new Date().toISOString().split("T")[0]);
   const [makingCharges, setMakingCharges] = useState(editingAsset?.makingCharges.toString() ?? "0");
@@ -108,27 +117,32 @@ export default function AddAssetScreen() {
 
   const handleSave = async () => {
     if (!name.trim()) {
-      Alert.alert("Error", "Please enter an asset name");
+      Alert.alert(t("formErrorTitle"), t("assetNameRequired"));
       return;
     }
     if (!weightValue || isNaN(parseFloat(weightValue)) || parseFloat(weightValue) <= 0) {
-      Alert.alert("Error", "Please enter a valid weight");
+      Alert.alert(t("formErrorTitle"), t("weightInvalid"));
       return;
     }
     if (!purchasePrice || isNaN(parseFloat(purchasePrice))) {
-      Alert.alert("Error", "Please enter a valid purchase price");
+      Alert.alert(t("formErrorTitle"), t("purchasePriceInvalid"));
       return;
     }
 
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSaving(true);
     try {
+      const purity = resolvePurity(metalType, karat, silverPurity);
       const assetData = {
         metalType,
         name: name.trim(),
         category,
         weightValue: parseFloat(weightValue),
         weightUnit,
+        // purityFactor / purityLabel drive every valuation, P&L and zakat number;
+        // karat / silverPurity are kept only so the edit screen can pre-fill.
+        purityLabel: purity.purityLabel,
+        purityFactor: purity.purityFactor,
         karat: metalType === "gold" ? karat : null,
         silverPurity: metalType === "silver" ? silverPurity : null,
         purchasePrice: parseFloat(purchasePrice),

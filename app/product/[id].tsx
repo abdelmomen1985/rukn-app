@@ -4,6 +4,7 @@ import { Text } from "@/components/ui/text";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { CTAButton } from "@/components/cta-button";
+import { CatalogState } from "@/components/catalog-state";
 import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/use-colors";
@@ -19,7 +20,7 @@ export default function ProductDetailScreen() {
   const { t, isRTL, lang } = useI18n();
   const insets = useSafeAreaInsets();
 
-  const { products } = useStoreCatalog();
+  const { products, isLoading, error, isEmpty, refetch } = useStoreCatalog();
   const product = products.find((p) => p.id === id);
 
   const [isWishlisted, setIsWishlisted] = useState(false);
@@ -73,10 +74,29 @@ export default function ProductDetailScreen() {
   const priceLocale = lang === "ar" ? "ar-SA" : "en-US";
 
   if (!product) {
+    // While the catalog is still loading (or failed to load) this screen must
+    // not claim the product does not exist.
+    if (isLoading || error || isEmpty) {
+      return (
+        <ScreenContainer className="bg-background">
+          <View className="flex-1 items-center justify-center">
+            <CatalogState
+              isLoading={isLoading}
+              error={error}
+              isEmpty={isEmpty}
+              onRetry={refetch}
+            />
+          </View>
+        </ScreenContainer>
+      );
+    }
     return (
       <ScreenContainer className="bg-background">
-        <View className="flex-1 items-center justify-center">
+        <View className="flex-1 items-center justify-center gap-4 px-8">
           <Text className="text-muted text-lg">{t("productNotFound")}</Text>
+          <View className="w-full max-w-[240px]">
+            <CTAButton title={t("continueShopping")} onPress={() => router.replace("/")} variant="outline" />
+          </View>
         </View>
       </ScreenContainer>
     );

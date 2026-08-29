@@ -4,7 +4,8 @@ import { TitleBar } from "@/components/title-bar";
 import LottieView from "lottie-react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { ProductCard } from "@/components/product-card";
-import { products } from "@/data/products";
+import { CatalogState } from "@/components/catalog-state";
+import { useStoreCatalog } from "@/hooks/use-store-catalog";
 import { useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useI18n } from "@/lib/i18n";
@@ -12,6 +13,7 @@ import { useFocusEffect } from "expo-router";
 
 export default function WishlistScreen() {
   const { t, isRTL } = useI18n();
+  const { products, isLoading, error, isEmpty, refetch } = useStoreCatalog();
   const [wishlist, setWishlist] = useState<Set<string>>(new Set());
   const [cart, setCart] = useState<Set<string>>(new Set());
 
@@ -80,7 +82,7 @@ export default function WishlistScreen() {
     <ScreenContainer className="bg-background">
       <TitleBar />
       <View className="flex-1 px-6 py-6">
-        {wishlistProducts.length === 0 ? (
+        {wishlist.size === 0 ? (
           <View className="flex-1 items-center justify-center gap-4">
             <LottieView
               source={require("@/assets/animations/wishlist-empty-2.json")}
@@ -92,6 +94,18 @@ export default function WishlistScreen() {
             <Text className="text-muted text-sm text-center">
               {t("wishlistEmptySubtitle")}
             </Text>
+          </View>
+        ) : isLoading || error || isEmpty ? (
+          <CatalogState
+            isLoading={isLoading}
+            error={error}
+            isEmpty={isEmpty}
+            onRetry={refetch}
+            emptyIcon="heart"
+          />
+        ) : wishlistProducts.length === 0 ? (
+          <View className="flex-1 items-center justify-center gap-3">
+            <Text className="text-muted text-lg text-center">{t("noProductsFound")}</Text>
           </View>
         ) : (
           <FlatList

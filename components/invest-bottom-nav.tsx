@@ -2,7 +2,7 @@ import { View, Pressable, StyleSheet, Platform } from "react-native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Text } from "@/components/ui/text";
 import { useColors } from "@/hooks/use-colors";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import * as Haptics from "expo-haptics";
 import { useI18n } from "@/lib/i18n";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -11,7 +11,7 @@ interface NavItem {
   id: string;
   icon: string;
   labelKey: string;
-  route: string;
+  route: Href;
   iconColor: string;
 }
 
@@ -59,7 +59,7 @@ export function InvestBottomNav() {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
 
-  const handlePress = (route: string) => {
+  const handlePress = (route: Parameters<typeof router.push>[0]) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     router.push(route);
   };

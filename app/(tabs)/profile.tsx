@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable } from "react-native";
+import { View, ScrollView, Pressable, Modal, Linking, Alert } from "react-native";
 import { Text } from "@/components/ui/text";
 import { TitleBar } from "@/components/title-bar";
 import { ScreenContainer } from "@/components/screen-container";
@@ -8,13 +8,23 @@ import * as Haptics from "expo-haptics";
 import { useI18n, type Lang } from "@/lib/i18n";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { getCustomerToken, getMe, logout, type Customer } from "@/lib/medusa";
+import {
+  deleteAccount,
+  getCustomerToken,
+  getMe,
+  logout,
+  type Customer,
+} from "@/lib/medusa";
+import { wipeDeviceData } from "@/lib/local-data";
+import { WEB } from "@/lib/brand";
 
 export default function ProfileScreen() {
   const colors = useColors();
   const { t, lang, setLang, isRTL } = useI18n();
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -41,18 +51,71 @@ export default function ProfileScreen() {
   };
 
   const menuItems = [
-    { icon: "person", title: t("accountSettings"), subtitle: t("accountSettingsSubtitle"), route: null },
-    { icon: "box", title: t("orderHistory"), subtitle: t("orderHistorySubtitle"), route: "/order-history" },
-    { icon: "heart", title: t("savedAddresses"), subtitle: t("savedAddressesSubtitle"), route: null },
-    { icon: "creditcard", title: t("paymentMethods"), subtitle: t("paymentMethodsSubtitle"), route: null },
-    { icon: "bell", title: t("notifications"), subtitle: t("notificationsSubtitle"), route: null },
-    { icon: "help", title: t("helpSupport"), subtitle: t("helpSupportSubtitle"), route: null },
+    { icon: "box", title: t("orderHistory"), subtitle: t("orderHistorySubtitle"), action: "orders" },
+    { icon: "help", title: t("helpSupport"), subtitle: t("helpSupportSubtitle"), action: "support" },
+    // Both stores open this link during review, so never render it while it
+    // still points at the placeholder origin (see lib/brand.ts).
+    ...(WEB.isConfigured
+      ? [{ icon: "lock.shield", title: t("privacyPolicy"), subtitle: t("privacyPolicySubtitle"), action: "privacy" }]
+      : []),
   ];
 
-  const handleMenuPress = (route: string | null, title: string) => {
+  const openExternal = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(t("helpSupport"), WEB.support);
+    }
+  };
+
+  const handleMenuPress = (action: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    if (route) router.push(route as any);
-    else console.log("Menu pressed:", title);
+    if (action === "orders") router.push("/order-history" as any);
+    else if (action === "support") void openExternal(`mailto:${WEB.support}`);
+    else if (action === "privacy") void openExternal(WEB.privacyPolicy);
+  };
+
+  /**
+   * Account deletion — required by Google Play (all apps with sign-in) and App
+   * Store Guideline 5.1.1(v). Server-side records go through Medusa; everything
+   * this device holds is cleared with wipeDeviceData().
+   */
+  const runDeleteAccount = async () => {
+    setDeleting(true);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    const result = customer ? await deleteAccount() : { status: "no_session" as const };
+
+    // Only erase what is on the device once the server side is actually gone.
+    // Wiping on a failed delete would destroy the user's portfolio, wishlist and
+    // trips while their account and orders still exist on the backend.
+    const serverSideDone = result.status === "deleted" || result.status === "no_session";
+    if (serverSideDone) {
+      await wipeDeviceData();
+      setCustomer(null);
+    }
+
+    setDeleting(false);
+    setConfirmDelete(false);
+
+    if (result.status === "deleted") {
+      Alert.alert(t("deleteAccount"), t("deleteAccountDone"));
+      return;
+    }
+    if (result.status === "no_session") {
+      // Nothing was signed in: this path only erased the local copy.
+      Alert.alert(t("deleteAccount"), t("deviceDataWiped"));
+      return;
+    }
+
+    // Deletion failed. Hand over a channel that actually works instead of a tick.
+    const buttons = [
+      { text: t("deleteAccountCancel"), style: "cancel" as const },
+      { text: t("emailSupport"), onPress: () => void openExternal(`mailto:${WEB.support}`) },
+      ...(WEB.isConfigured
+        ? [{ text: t("openWebDeletion"), onPress: () => void openExternal(WEB.accountDeletion) }]
+        : []),
+    ];
+    Alert.alert(t("deleteAccount"), t("deleteAccountFailed"), buttons);
   };
 
   const handleLangSwitch = (newLang: Lang) => {
@@ -133,7 +196,7 @@ export default function ProfileScreen() {
           {menuItems.map((item, index) => (
             <Pressable
               key={index}
-              onPress={() => handleMenuPress(item.route, item.title)}
+              onPress={() => handleMenuPress(item.action)}
               style={({ pressed }) => ({
                 opacity: pressed ? 0.7 : 1,
                 flexDirection: isRTL ? "row-reverse" : "row",
@@ -170,11 +233,107 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* Account deletion — must be reachable from inside the app, not just a web page */}
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setConfirmDelete(true);
+          }}
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.7 : 1,
+            flexDirection: isRTL ? "row-reverse" : "row",
+            alignItems: "center",
+            gap: 16,
+            backgroundColor: colors.surface,
+            borderRadius: 12,
+            padding: 16,
+            marginTop: 8,
+            borderWidth: 1,
+            borderColor: colors.error,
+          })}
+        >
+          <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: colors.background }}>
+            <IconSymbol name="trash" size={20} color={colors.error} />
+          </View>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Text
+              className="text-base font-semibold"
+              style={{ color: colors.error, textAlign: isRTL ? "right" : "left" }}
+            >
+              {t("deleteAccount")}
+            </Text>
+            <Text
+              className="text-muted text-sm"
+              style={{ textAlign: isRTL ? "right" : "left" }}
+            >
+              {t("deleteAccountSubtitle")}
+            </Text>
+          </View>
+          <IconSymbol
+            name={isRTL ? "chevron.left" : "chevron.right"}
+            size={20}
+            color={colors.muted}
+          />
+        </Pressable>
+
         <View className="mt-8 items-center gap-2">
           <Text className="text-muted text-sm">{t("version")}</Text>
           <Text className="text-muted text-xs">{t("copyright")}</Text>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={confirmDelete}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setConfirmDelete(false)}
+      >
+        <View className="flex-1 items-center justify-center px-6" style={{ backgroundColor: "rgba(0,0,0,0.55)" }}>
+          <View
+            className="w-full max-w-[420px] p-6 gap-4"
+            style={{
+              backgroundColor: colors.surface,
+              borderRadius: 24,
+              borderWidth: 1,
+              borderColor: colors.border,
+            }}
+          >
+            <Text className="text-foreground text-xl font-bold">
+              {customer ? t("deleteAccountTitle") : t("notSignedInDeleteTitle")}
+            </Text>
+            <Text className="text-muted text-sm" style={{ lineHeight: 21 }}>
+              {customer ? t("deleteAccountBody") : t("notSignedInDeleteBody")}
+            </Text>
+            <Pressable
+              disabled={deleting}
+              onPress={() => void runDeleteAccount()}
+              style={({ pressed }) => ({
+                opacity: pressed || deleting ? 0.7 : 1,
+                backgroundColor: colors.error,
+                borderRadius: 14,
+                paddingVertical: 16,
+                alignItems: "center",
+              })}
+            >
+              <Text className="text-base font-bold" style={{ color: "#FFFFFF" }}>
+                {deleting
+                  ? t("deleteAccountSubmitting")
+                  : customer
+                    ? t("deleteAccountConfirm")
+                    : t("wipeDeviceData")}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setConfirmDelete(false)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1, alignItems: "center", paddingVertical: 12 })}
+            >
+              <Text className="text-foreground text-base font-semibold">
+                {t("deleteAccountCancel")}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </ScreenContainer>
   );
 }

@@ -282,6 +282,36 @@ export async function logout(): Promise<void> {
   await clearCustomerToken();
 }
 
+/**
+ * Hard-delete the signed-in customer (App Store Guideline 5.1.1(v) / Play
+ * account-deletion policy).
+ *
+ * Medusa v2 exposes DELETE /store/customers/me; older builds or restricted
+ * setups answer 404/405, which we surface as `unsupported` so the UI can offer
+ * the web deletion page instead of pretending the account is gone.
+ */
+export async function deleteAccount(): Promise<{
+  status: "deleted" | "unsupported" | "unauthorized" | "error";
+}> {
+  try {
+    await medusaFetch("/store/customers/me", { method: "DELETE" });
+    await clearCustomerToken();
+    return { status: "deleted" };
+  } catch (error) {
+    const status = error instanceof MedusaError ? error.status : 0;
+    if (status === 401 || status === 403) {
+      // The token is no longer usable, so drop it — but the account still
+      // exists, so this is NOT a successful deletion.
+      await clearCustomerToken();
+      return { status: "unauthorized" };
+    }
+    // Keep the session: the account was not deleted, and signing the user out
+    // here would leave them unable to retry from inside the app.
+    if (status === 404 || status === 405) return { status: "unsupported" };
+    return { status: "error" };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Checkout (local cart items → real Medusa order)
 // ---------------------------------------------------------------------------
