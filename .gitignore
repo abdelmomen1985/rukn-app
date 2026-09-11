@@ -63,3 +63,7 @@ Thumbs.db
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+
+# Cached webfonts for the Play store-asset generator
+scripts/store-assets/.fonts/
+scripts/store-assets/.render/

@@ -1,0 +1,9 @@
+First public release.
+• Live gold, silver, platinum & palladium rates in SAR/gram (24K–18K)
+• Portfolio tracker: value, gain/loss, annualized return, allocation by metal
+• Shopping trips: log store quotes and compare against the market reference
+• Zakat calculator with automatic nisab check (85 g of 24K gold)
+• Gold value calculator & weight converter (g, tola, ounce, mithqal)
+• Jewelry shop: search, wishlist, cart, checkout, order history
+• Consultation booking
+• Arabic + English, full RTL
