@@ -1,8 +1,0 @@
-Version 2.0 — rebuilt to match our online store.
-• Sign in with your phone number
-• Live gold & silver prices; product prices follow the 21K rate
-• Full checkout: home delivery, branch pickup or branch vault; bank transfer or mada/card
-• Order progress tracking, tax invoices and bar certificates
-• Special offers, curated collections, photo galleries, smarter search
-• Price alerts and portfolio sync to your account
-Please sign in again after updating.
