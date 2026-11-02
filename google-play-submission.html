@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>Rukn Thamin Play Submission</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: a sticky step rail beside one reading column; each step is a checklist plus paste-ready fields. */
+  :root {
+    --bg: #f4f6f4;
+    --surface: #ffffff;
+    --ink: #10231f;
+    --muted: #586a65;
+    --line: #dbe2df;
+    --band: #07352b;
+    --band-ink: #f3e3b0;
+    --accent: #8a6a12;
+    --accent-soft: #f6eed3;
+    --warn: #9a3d14;
+    --warn-soft: #fbece3;
+    --ok: #1d6a3a;
+    --code-bg: #eef2f0;
+    --font-display: "Bricolage Grotesque", "IBM Plex Sans", system-ui, sans-serif;
+    --font-body: "IBM Plex Sans", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-ar: "IBM Plex Sans Arabic", "IBM Plex Sans", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #08130f; --surface: #0f1e19; --ink: #e6eeeb; --muted: #9bb0a9; --line: #20372f;
+      --band: #062a22; --band-ink: #ecd58e; --accent: #e0bf55; --accent-soft: #2a2512;
+      --warn: #f2a47c; --warn-soft: #2e1b11; --ok: #6fd193; --code-bg: #0a1814;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #08130f; --surface: #0f1e19; --ink: #e6eeeb; --muted: #9bb0a9; --line: #20372f;
+    --band: #062a22; --band-ink: #ecd58e; --accent: #e0bf55; --accent-soft: #2a2512;
+    --warn: #f2a47c; --warn-soft: #2e1b11; --ok: #6fd193; --code-bg: #0a1814;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.6 var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  code { font: 0.88em/1.4 var(--font-mono); background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+
+  .masthead { background: var(--band); color: #fff; }
+  .masthead .inner {
+    max-width: 1120px; margin: 0 auto; padding-block: 40px 34px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 14px;
+  }
+  .eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--band-ink); }
+  .masthead h1 { font: 700 clamp(30px, 5vw, 46px)/1.05 var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+  .masthead p { margin: 0; max-width: 62ch; color: #d3e2dc; }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 6px; font: 13px/1.4 var(--font-mono); color: #cfe0d9; }
+  .facts b { color: var(--band-ink); font-weight: 500; }
+  .meter { display: flex; align-items: center; gap: 12px; margin-top: 4px; font: 13px var(--font-mono); color: #cfe0d9; }
+  .meter .bar { flex: 1; max-width: 320px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.14); overflow: hidden; }
+  .meter .bar i { display: block; height: 100%; width: 0; background: var(--band-ink); transition: width 0.3s ease; }
+
+  .shell {
+    max-width: 1120px; margin: 0 auto; padding-block: 28px 80px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px;
+  }
+  nav.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 20px); align-self: start; }
+  nav.rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  nav.rail a {
+    display: grid; grid-template-columns: 26px 1fr auto; align-items: baseline; gap: 6px;
+    padding: 7px 10px; border-radius: 6px; text-decoration: none; color: var(--muted); font-size: 14px;
+  }
+  nav.rail a:hover { background: var(--surface); color: var(--ink); }
+  nav.rail .n { font: 500 12px var(--font-mono); color: var(--accent); }
+  nav.rail .c { font: 11px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  nav.rail a.done .c { color: var(--ok); }
+
+  main { display: grid; gap: 56px; min-width: 0; }
+  section { display: grid; gap: 18px; scroll-margin-top: 20px; min-width: 0; }
+  .step-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: baseline; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+  .step-head .n { font: 600 14px var(--font-mono); color: var(--accent); grid-row: span 2; padding-top: 6px; }
+  .step-head h2 { font: 700 26px/1.15 var(--font-display); margin: 0; text-wrap: balance; }
+  .step-head p { margin: 0; color: var(--muted); max-width: 65ch; }
+  h3 { font: 600 17px/1.3 var(--font-body); margin: 8px 0 0; }
+  p { margin: 0; max-width: 68ch; }
+  .where { font: 13px var(--font-mono); color: var(--muted); }
+
+  ul.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  ul.tasks li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 6px; }
+  ul.tasks li:hover { background: var(--surface); }
+  ul.tasks input { width: 17px; height: 17px; margin: 3px 0 0; accent-color: var(--ok); cursor: pointer; }
+  ul.tasks label { cursor: pointer; min-width: 0; }
+  ul.tasks li:has(input:checked) label { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+  ul.tasks .sub { display: block; color: var(--muted); font-size: 13.5px; margin-top: 2px; text-decoration: none; }
+
+  .blocker { background: var(--warn-soft); border-radius: 8px; padding: 4px; }
+  .blocker ul.tasks li:hover { background: transparent; }
+  .tag { font: 500 11px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 6px; border-radius: 4px; white-space: nowrap; }
+  .tag.warn { color: var(--warn); border: 1px solid currentColor; }
+  .tag.you { color: var(--accent); border: 1px solid currentColor; }
+
+  .field { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); min-width: 0; }
+  .field header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .field header strong { font-weight: 600; font-size: 14px; }
+  .field .count { font: 12px var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .field .count.over { color: var(--warn); }
+  .field button {
+    margin-inline-start: auto; font: 500 12.5px var(--font-body); color: var(--ink);
+    background: transparent; border: 1px solid var(--line); border-radius: 5px; padding: 4px 10px; cursor: pointer;
+  }
+  .field button:hover { border-color: var(--accent); color: var(--accent); }
+  .field button.copied { color: var(--ok); border-color: var(--ok); }
+  .field pre {
+    margin: 0; padding: 12px; font: 13.5px/1.6 var(--font-body); white-space: pre-wrap; overflow-wrap: anywhere;
+    max-height: 340px; overflow: auto;
+  }
+  .field pre[dir="rtl"] { font-family: var(--font-ar); font-size: 14.5px; }
+  .field pre.mono { font-family: var(--font-mono); font-size: 13px; }
+  .ph { background: var(--accent-soft); color: var(--accent); border-radius: 3px; padding: 0 3px; }
+
+  .pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: start; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  th { font: 500 11.5px var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--code-bg); }
+  td .yes { color: var(--ok); font-weight: 600; }
+  td .no { color: var(--muted); font-weight: 600; }
+
+  .note { border-inline-start: 3px solid var(--accent); padding: 4px 0 4px 14px; color: var(--muted); max-width: 68ch; }
+  .note b { color: var(--ink); }
+  .shots { display: flex; flex-wrap: wrap; gap: 6px; }
+  .shots span { font: 12.5px var(--font-mono); border: 1px solid var(--line); border-radius: 4px; padding: 3px 7px; background: var(--surface); }
+
+  footer.end { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  footer.end button { font: inherit; color: var(--muted); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+    nav.rail { position: static; }
+    nav.rail ol { display: flex; flex-wrap: wrap; gap: 6px; }
+    nav.rail a { display: inline-flex; gap: 6px; border: 1px solid var(--line); padding: 4px 9px; font-size: 13px; }
+    nav.rail .t { display: none; }
+    .pair { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="inner">
+    <span class="eyebrow">Google Play Console · version 2.0.0 (100)</span>
+    <h1>Submitting Rukn Thamin 2.0 to Google Play</h1>
+    <p>Every screen of the Play Console in order, with the answers and paste-ready text for this release. Rukn Thamin 2.0 is the Flutter rebuild, and it ships as an update to the app that is already listed, so you are editing an existing app, not creating one.</p>
+    <div class="facts">
+      <span>package <b>com.ruknthamin.app</b></span>
+      <span>target SDK <b>36</b> · min <b>24</b></span>
+      <span>bundle <b>app-release.aab</b></span>
+      <span>backend <b>admin.rknthmin.com.sa</b></span>
+    </div>
+    <div class="meter" aria-live="polite"><span class="bar"><i id="meter-fill"></i></span><span id="meter-text">0 of 0 done</span></div>
+  </div>
+</header>
+
+<div class="shell">
+  <nav class="rail" aria-label="Steps">
+    <ol id="rail"></ol>
+  </nav>
+
+  <main>
+
+    <section id="blockers" data-title="Before you start">
+      <div class="step-head">
+        <span class="n">00</span>
+        <h2>Before you start</h2>
+        <p>These need your accounts or the backend, so they couldn't be done from the repo. Play rejects the upload or the review without the first and fourth.</p>
+      </div>
+      <div class="blocker">
+        <ul class="tasks">
+          <li><input type="checkbox" id="b-key"><label for="b-key">Get Play to accept the new upload key <span class="tag warn">blocks upload</span>
+            <span class="sub">A new key was created: <code>rukn_flutter/android/upload-keystore.jks</code>, passwords in <code>android/key.properties</code>. Back both up now. Then in Play Console → Test and release → App integrity → App signing, choose <b>Request upload key reset</b> and attach <code>android/upload_certificate.pem</code>. Google usually approves in about 2 days; uploads are refused until then.</span></label></li>
+          <li><input type="checkbox" id="b-code"><label for="b-code">Check that version code <code>100</code> is higher than the last one uploaded
+            <span class="sub">EAS kept the counter on its servers. Look under Test and release → App bundle explorer. If 100 isn't higher, raise <code>version:</code> in <code>pubspec.yaml</code> (for example <code>2.0.0+120</code>).</span></label></li>
+          <li><input type="checkbox" id="b-delete"><label for="b-delete">Make the website's deletion form actually reach the team <span class="tag warn">policy</span>
+            <span class="sub"><code>https://rknthmin.com.sa/delete-account</code> is live, but the form is a stub that drops the request (<code>rukn-site/src/lib/accountDeletion.ts</code>). Play requires that URL to start a real deletion. Also confirm production answers <code>DELETE /store/customers/me</code>, which the app's Delete account button calls.</span></label></li>
+          <li><input type="checkbox" id="b-review"><label for="b-review">Set up a reviewer phone number with a fixed sign-in code <span class="tag warn">blocks review</span>
+            <span class="sub">Sign-in is by SMS code only. Without a test number, reviewers can't reach checkout, orders or account deletion, and the review fails under "App access".</span></label></li>
+          <li><input type="checkbox" id="b-analytics"><label for="b-analytics">Confirm the backend accepts <code>platform: "android"</code> on <code>/store/analytics/collect</code>
+            <span class="sub">The website sends <code>"web"</code>. If the backend only accepts that, app analytics are dropped without an error. This doesn't affect the review.</span></label></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="build" data-title="Build the bundle">
+      <div class="step-head">
+        <span class="n">01</span>
+        <h2>Build the release bundle</h2>
+        <p>On the machine that has <code>key.properties</code> and the keystore. Takes about three minutes.</p>
+      </div>
+      <div class="field">
+        <header><strong>Terminal</strong><button type="button" data-copy="cmd-build">Copy</button></header>
+        <pre class="mono" id="cmd-build">cd rukn_flutter
+flutter test
+flutter build appbundle --release</pre>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="build-ok"><label for="build-ok">Bundle written to <code>rukn_flutter/build/app/outputs/bundle/release/app-release.aab</code> (about 50 MB)</label></li>
+        <li><input type="checkbox" id="build-signed"><label for="build-signed">Confirm it's signed with the upload key (SHA-256 starts <code>73:62:AE:C8</code>), not the debug key
+          <span class="sub"><code>keytool -printcert -jarfile build/app/outputs/bundle/release/app-release.aab</code>. The owner must not read "CN=Android Debug".</span></label></li>
+      </ul>
+    </section>
+
+    <section id="testing" data-title="Internal test">
+      <div class="step-head">
+        <span class="n">02</span>
+        <h2>Upload to internal testing first</h2>
+        <p>Internal testing isn't reviewed and is available within minutes. Install it on a real phone before anything goes to production.</p>
+      </div>
+      <p class="where">Play Console → Rukn Thamin → Test and release → Testing → Internal testing → Create new release</p>
+      <ul class="tasks">
+        <li><input type="checkbox" id="t-upload"><label for="t-upload">Upload <code>app-release.aab</code>; release name <code>2.0.0 (100)</code></label></li>
+        <li><input type="checkbox" id="t-notes"><label for="t-notes">Paste the release notes from step 06 for both languages</label></li>
+        <li><input type="checkbox" id="t-install"><label for="t-install">Install from the testers' opt-in link and check on a phone:
+          <span class="sub">The home screen shows products and live prices · signing in with a phone number works · an order reaches payment (bank transfer or card page) · Profile → Delete account opens its confirmation · switching to Arabic flips the layout to right-to-left.</span></label></li>
+        <li><input type="checkbox" id="t-prelaunch"><label for="t-prelaunch">Open the pre-launch report (about an hour after upload) and fix anything marked red</label></li>
+      </ul>
+      <p class="note"><b>Updating from the Expo app:</b> on the phone, upgrading over the old version keeps the app but not its saved data. Guests start with an empty cart, wishlist and portfolio, and everyone signs in again. The release notes already say so.</p>
+    </section>
+
+    <section id="listing" data-title="Store listing">
+      <div class="step-head">
+        <span class="n">03</span>
+        <h2>Main store listing</h2>
+        <p>English (United States) is the default listing; Arabic is a translation added under "Manage translations". Paste each field as is. The character counts are live, checked against Play's limits.</p>
+      </div>
+      <p class="where">Grow users → Store presence → Store listings → Default store listing</p>
+
+      <h3>English (United States)</h3>
+      <div class="pair">
+        <div class="field">
+          <header><strong>App name</strong><span class="count" data-for="en-name" data-max="30"></span><button type="button" data-copy="en-name">Copy</button></header>
+          <pre id="en-name">Rukn Thamin: Gold &amp; Jewelry</pre>
+        </div>
+        <div class="field">
+          <header><strong>Short description</strong><span class="count" data-for="en-short" data-max="80"></span><button type="button" data-copy="en-short">Copy</button></header>
+          <pre id="en-short">Live gold rates in SAR, zakat calculator, quote comparison, jewelry shop.</pre>
+        </div>
+      </div>
+      <div class="field">
+        <header><strong>Full description</strong><span class="count" data-for="en-full" data-max="4000"></span><button type="button" data-copy="en-full">Copy</button></header>
+        <pre id="en-full">Rukn Thamin is the gold companion for Saudi buyers — real-time prices, honest numbers, and certified jewelry in one bilingual (Arabic/English, RTL-ready) app.
+
+■ LIVE GOLD &amp; SILVER PRICES
+Track 24K, 22K, 21K, 18K gold plus silver, platinum and palladium in Saudi Riyals per gram, updated from live spot data. Switch freely between grams, tolas, ounces and mithqal, and see exactly when a quote was refreshed.
+
+■ PRICE A PIECE IN SECONDS
+The gold value calculator turns weight + karat + making charges + VAT into what a piece should actually cost. The weight converter handles grams, tolas, ounces and mithqal in one tap.
+
+■ MY INVESTMENTS
+Add every gold bar, coin and piece of jewelry you own — purchase price, making charges and VAT included. Rukn Thamin revalues the whole portfolio at today&#x27;s spot price and shows current value, gain/loss, percentage and annualized return, plus an allocation chart by metal. Pull to refresh at any time.
+
+■ SHOPPING TRIPS (جولات التسوق)
+Going jeweller-hopping? Plan a trip, log each store&#x27;s quote — price, weight, karat, VAT included or not, local or imported workmanship — and let the app flag each quote as excellent, fair or high against the live market reference. Compare side by side, add notes, then close the trip with the best deal in hand.
+
+■ ZAKAT CALCULATOR
+Automatic nisab check against 85 g of 24K gold, zakatable value and 2.5% due calculated from your live portfolio, with a per-asset breakdown. A simplified estimate — consult a qualified scholar for your final assessment.
+
+■ THE SHOP
+Necklaces, rings, bangles and bars in certified gold, priced live from the 21K rate, with special offers and curated collections. Search, save to your wishlist and check out in the app: home delivery, branch pickup or safekeeping in the branch vault; pay by bank transfer or mada/card. Follow each order&#x27;s progress, download tax invoices and verify bar certificates.
+
+■ EXPERT CONSULTATION
+Book a private session with a market specialist for buy/sell and diversification guidance, at a time that suits you. Paid sessions are settled on a secure hosted checkout.
+
+■ BUILT FOR THE KINGDOM
+Arabic and English throughout with full right-to-left layout, Saudi Riyal pricing, VAT-aware calculations and 21K as a first-class karat. Works on phones and tablets.
+
+As a guest, your portfolio, wishlist and trip notes stay on your device; sign in with your phone number to sync your portfolio to your account. No ads, no data resale.
+
+Questions, wholesale orders or custom pieces: info@alruknalthamin.com</pre>
+      </div>
+
+      <h3>Arabic (ar-SA)</h3>
+      <div class="pair">
+        <div class="field">
+          <header><strong>App name</strong><span class="count" data-for="ar-name" data-max="30"></span><button type="button" data-copy="ar-name">Copy</button></header>
+          <pre id="ar-name" dir="rtl" lang="ar">ركن ثمين: ذهب ومجوهرات</pre>
+        </div>
+        <div class="field">
+          <header><strong>Short description</strong><span class="count" data-for="ar-short" data-max="80"></span><button type="button" data-copy="ar-short">Copy</button></header>
+          <pre id="ar-short" dir="rtl" lang="ar">أسعار الذهب بالريال لحظياً، حاسبة زكاة، مقارنة عروض المحلات، ومتجر مجوهرات.</pre>
+        </div>
+      </div>
+      <div class="field">
+        <header><strong>Full description</strong><span class="count" data-for="ar-full" data-max="4000"></span><button type="button" data-copy="ar-full">Copy</button></header>
+        <pre id="ar-full" dir="rtl" lang="ar">ركن ثمين هو رفيقك في الذهب داخل السعودية: أسعار لحظية، وأرقام واضحة، ومجوهرات معتمدة، في تطبيق واحد يدعم العربية والإنجليزية واتجاه من اليمين إلى اليسار.
+
+■ أسعار مباشرة
+أسعار الذهب عيار 24 و22 و21 و18، إضافة إلى الفضة والبلاتين والبلاديوم، بالريال السعودي للجرام، محدّثة من السعر الفوري مع بيان وقت آخر تحديث.
+
+■ احسب قيمة أي قطعة
+تحوّل حاسبة قيمة الذهب الوزن والعيار وأجرة الصياغة وضريبة القيمة المضافة إلى السعر العادل للقطعة، مع محوّل أوزان بين الجرام والتولة والأونصة والمثقال.
+
+■ استثماراتي
+أضف كل ما تملكه من سبائك وعملات ومشغولات مع سعر الشراء وأجرة الصياغة والضريبة، ثم شاهد القيمة الحالية للمحفظة، والربح والخسارة، ونسبة العائد، والعائد السنوي، وتوزيع المعادن في رسم واحد. اسحب للتحديث في أي وقت.
+
+■ جولات التسوق
+خطّط جولتك قبل الشراء، وسجّل عرض كل محل: السعر الإجمالي، والوزن، والعيار، وهل يشمل الضريبة، مع بيان إن كانت الصياغة محلية أو مستوردة. يصنّف التطبيق كل عرض بين ممتاز وعادل ومرتفع مقارنة بسعر السوق المرجعي، لتقارن بين المحلات في مكان واحد وتختار الأفضل.
+
+■ حاسبة الزكاة
+فحص تلقائي للنصاب (85 جراماً من ذهب عيار 24)، مع حساب المال الزكوي والواجب 2.5% وتفصيل الأصول. تقدير مبسّط يعتمد على الأسعار الحالية، ويُرجى مراجعة أحد المتخصصين في أحكام الزكاة لشروط الحول ونحوها.
+
+■ المتجر
+قلائد وخواتم وبناجر وسبائك من الذهب المعتمد، بأسعار تتبع سعر عيار 21 لحظياً، مع العروض الخاصة والتشكيلات المختارة. ابحث وأضف إلى المفضلة وأكمل الشراء داخل التطبيق: توصيل منزلي أو استلام من الفرع أو حفظ في خزنة الفرع، والدفع بالتحويل البنكي أو مدى/البطاقة. تابع مراحل كل طلب، وحمّل الفواتير الضريبية، وتحقق من شهادات السبائك.
+
+■ استشارة متخصصة
+احجز جلسة خاصة مع متخصص في السوق في الوقت المناسب لك: تحليل لمحفظتك، ونصائح للشراء والبيع والتنويع. تُدفع الجلسات المدفوعة عبر صفحة دفع آمنة.
+
+■ مصمَّم للسعودية
+لغتان كاملتان مع اتجاه من اليمين إلى اليسار، وأسعار بالريال السعودي، وحسابات تراعي ضريبة القيمة المضافة، وعيار 21 معاملة أساسية. يعمل على الجوال والتابلت.
+
+كزائر، تبقى محفظتك ومفضلتك وجولاتك على جهازك؛ سجّل الدخول برقم جوالك لمزامنة المحفظة مع حسابك. بدون إعلانات ولا بيع للبيانات.
+
+للاستفسار والطلبات الخاصة: info@alruknalthamin.com</pre>
+      </div>
+
+      <h3>Graphics</h3>
+      <p>All files are in <code>store-assets/play/</code>. Screenshots were captured from the real 2.0 app; upload them in filename order.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>English file</th><th>Arabic file</th><th>Size</th></tr></thead>
+          <tbody>
+            <tr><td>App icon</td><td><code>icon/app-icon-512.png</code></td><td>same</td><td>512 × 512</td></tr>
+            <tr><td>Feature graphic</td><td><code>feature-graphic/feature-graphic-1024x500.en-US.png</code></td><td><code>…1024x500.ar.png</code></td><td>1024 × 500</td></tr>
+            <tr><td>Phone screenshots</td><td><code>phone-screenshots/en-US/</code></td><td><code>phone-screenshots/ar/</code></td><td>1080 × 1920, 8 each</td></tr>
+            <tr><td>7-inch tablet</td><td><code>tablet-7in-screenshots/en-US/</code></td><td><code>tablet-7in-screenshots/ar/</code></td><td>1200 × 1920, 8 each</td></tr>
+            <tr><td>10-inch tablet</td><td><code>tablet-10in-screenshots/en-US/</code></td><td><code>tablet-10in-screenshots/ar/</code></td><td>1600 × 2560, 8 each</td></tr>
+            <tr><td>Video</td><td colspan="3">Leave empty</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="shots" aria-label="Screenshot order">
+        <span>01 shop</span><span>02 product</span><span>03 live prices</span><span>04 portfolio</span><span>05 asset detail</span><span>06 trips</span><span>07 zakat</span><span>08 consultation</span>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="l-en"><label for="l-en">English text and graphics saved</label></li>
+        <li><input type="checkbox" id="l-ar"><label for="l-ar">Arabic translation added with its own text, feature graphic and screenshots</label></li>
+        <li><input type="checkbox" id="l-old"><label for="l-old">Old Expo screenshots removed from both languages (they show the retired design)</label></li>
+      </ul>
+    </section>
+
+    <section id="settings" data-title="Store settings">
+      <div class="step-head">
+        <span class="n">04</span>
+        <h2>Store settings</h2>
+        <p>Category and contact details. The email and website must match the privacy policy.</p>
+      </div>
+      <p class="where">Grow users → Store presence → Store settings</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>App or game</td><td>App</td></tr>
+            <tr><td>Category</td><td>Shopping</td></tr>
+            <tr><td>Tags</td><td>Shopping, Finance (add what Play offers that fits; tags change)</td></tr>
+            <tr><td>Email address</td><td><code>info@alruknalthamin.com</code></td></tr>
+            <tr><td>Phone number</td><td><code>920017233</code></td></tr>
+            <tr><td>Website</td><td><code>https://rknthmin.com.sa</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="s-saved"><label for="s-saved">Store settings saved</label></li>
+      </ul>
+    </section>
+
+    <section id="content" data-title="App content">
+      <div class="step-head">
+        <span class="n">05</span>
+        <h2>App content declarations</h2>
+        <p>Each item is its own form. Most were answered for the Expo app; open every one, because 2.0 collects more data (analytics, bank-receipt photos) and has a new sign-in.</p>
+      </div>
+      <p class="where">Monitor and improve → Policy and programs → App content</p>
+
+      <h3>Privacy policy</h3>
+      <div class="field">
+        <header><strong>Privacy policy URL</strong><button type="button" data-copy="url-privacy">Copy</button></header>
+        <pre class="mono" id="url-privacy">https://rknthmin.com.sa/privacy</pre>
+      </div>
+
+      <h3>App access</h3>
+      <p>Choose "All or some functionality is restricted" and add one set of instructions:</p>
+      <div class="field">
+        <header><strong>Instructions for reviewers</strong><button type="button" data-copy="review-notes">Copy</button></header>
+        <pre id="review-notes">Sign-in uses a one-time SMS code (phone number only, no password).
+Test phone number: <span class="ph">+966 5X XXX XXXX</span>
+Fixed code for this number: <span class="ph">XXXXXX</span>
+
+Without signing in you can use live gold prices, the shop, product pages, portfolio, zakat, shopping trips and price alerts. Signing in is needed for checkout, orders and account deletion.
+
+Payments: jewellery is a physical product and consultations are a real-world service, so both are paid outside Google Play Billing (bank transfer, or mada/card on Paymob's hosted page).
+
+Delete account: Profile → Delete account (or https://rknthmin.com.sa/delete-account).</pre>
+      </div>
+
+      <h3>The short forms</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Form</th><th>Answer</th></tr></thead>
+          <tbody>
+            <tr><td>Ads</td><td><span class="no">No</span>, the app has no ads</td></tr>
+            <tr><td>Content rating (IARC)</td><td>Category "Shopping / e-commerce". Answer <span class="no">No</span> to violence, sexuality, language, drugs, gambling, user-generated content, chat and location sharing. To "Does the app let users buy physical goods?" answer <span class="yes">Yes</span>. Expected rating: Everyone / 3+.</td></tr>
+            <tr><td>Target audience and content</td><td>18 and over only. Not appealing to children.</td></tr>
+            <tr><td>News app</td><td><span class="no">No</span></td></tr>
+            <tr><td>Government app</td><td><span class="no">No</span></td></tr>
+            <tr><td>Health apps</td><td><span class="no">No</span> health features</td></tr>
+            <tr><td>Financial features</td><td>The app tracks user-entered holdings and shows market prices. It offers no banking, loans, payments between people, trading, crypto or insurance. Pick the option that matches this; if the form only offers regulated categories, choose "My app doesn't provide any financial features". <span class="tag you">check wording</span></td></tr>
+            <tr><td>Data deletion</td><td>Users can request deletion: <span class="yes">Yes</span>. Delete account URL <code>https://rknthmin.com.sa/delete-account</code>. In-app path: Profile → Delete account.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Data safety</h3>
+      <p>Declare exactly what 2.0 does. Encrypted in transit: <b>Yes</b>. Users can request deletion: <b>Yes</b>. No data is shared with third parties, and none is used for ads or tracking. Card numbers are typed on Paymob's page, never in the app, so don't declare payment info.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Data type (Play's name)</th><th>Collected</th><th>Optional?</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Personal info → Name</td><td><span class="yes">Yes</span></td><td>Required for an account</td><td>App functionality, Account management</td></tr>
+            <tr><td>Personal info → Email address</td><td><span class="yes">Yes</span></td><td>Optional</td><td>Account management</td></tr>
+            <tr><td>Personal info → Phone number</td><td><span class="yes">Yes</span></td><td>Required for an account</td><td>Account management (sign-in)</td></tr>
+            <tr><td>Personal info → Address</td><td><span class="yes">Yes</span></td><td>Required for delivery</td><td>App functionality</td></tr>
+            <tr><td>Financial info → Purchase history</td><td><span class="yes">Yes</span></td><td>Required to order</td><td>App functionality, Analytics</td></tr>
+            <tr><td>Financial info → Other financial info (portfolio holdings, when signed in)</td><td><span class="yes">Yes</span></td><td>Optional</td><td>App functionality</td></tr>
+            <tr><td>Photos and videos → Photos (bank-transfer receipt)</td><td><span class="yes">Yes</span></td><td>Optional</td><td>App functionality</td></tr>
+            <tr><td>App activity → App interactions</td><td><span class="yes">Yes</span></td><td>Required</td><td>Analytics</td></tr>
+            <tr><td>App activity → In-app search history</td><td><span class="yes">Yes</span></td><td>Required</td><td>Analytics</td></tr>
+            <tr><td>Device or other IDs (random install id for analytics)</td><td><span class="yes">Yes</span></td><td>Required</td><td>Analytics</td></tr>
+            <tr><td>Location, contacts, messages, audio, health, calendar, advertising ID</td><td><span class="no">No</span></td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="c-privacy"><label for="c-privacy">Privacy policy URL saved</label></li>
+        <li><input type="checkbox" id="c-access"><label for="c-access">App access instructions saved with a working test number and code</label></li>
+        <li><input type="checkbox" id="c-forms"><label for="c-forms">Ads, content rating, target audience, news, government, health and financial forms answered</label></li>
+        <li><input type="checkbox" id="c-safety"><label for="c-safety">Data safety updated with analytics, photos and device IDs</label></li>
+        <li><input type="checkbox" id="c-deletion"><label for="c-deletion">Data deletion URL saved (after the website form works)</label></li>
+      </ul>
+    </section>
+
+    <section id="release" data-title="Release">
+      <div class="step-head">
+        <span class="n">06</span>
+        <h2>Release to production</h2>
+        <p>Promote the bundle you tested instead of uploading a new one, then roll out in stages so a crash reaches few people.</p>
+      </div>
+      <p class="where">Test and release → Production → Create new release → Add from library</p>
+      <div class="pair">
+        <div class="field">
+          <header><strong>Release notes · en-US</strong><span class="count" data-for="en-notes" data-max="500"></span><button type="button" data-copy="en-notes">Copy</button></header>
+          <pre id="en-notes">Version 2.0 — rebuilt to match our online store.
+• Sign in with your phone number
+• Live gold &amp; silver prices; product prices follow the 21K rate
+• Full checkout: home delivery, branch pickup or branch vault; bank transfer or mada/card
+• Order progress tracking, tax invoices and bar certificates
+• Special offers, curated collections, photo galleries, smarter search
+• Price alerts and portfolio sync to your account
+Please sign in again after updating.</pre>
+        </div>
+        <div class="field">
+          <header><strong>Release notes · ar</strong><span class="count" data-for="ar-notes" data-max="500"></span><button type="button" data-copy="ar-notes">Copy</button></header>
+          <pre id="ar-notes" dir="rtl" lang="ar">الإصدار 2.0 — أُعيد بناؤه ليطابق متجرنا الإلكتروني.
+• تسجيل الدخول برقم الجوال
+• أسعار الذهب والفضة لحظياً، وأسعار المنتجات تتبع عيار 21
+• شراء كامل: توصيل منزلي أو استلام من الفرع أو خزنة الفرع؛ تحويل بنكي أو مدى/بطاقة
+• تتبع مراحل الطلب، الفواتير الضريبية وشهادات السبائك
+• العروض الخاصة، تشكيلات مختارة، معرض صور وبحث أذكى
+• تنبيهات الأسعار ومزامنة المحفظة مع حسابك
+يرجى تسجيل الدخول مجدداً بعد التحديث.</pre>
+        </div>
+      </div>
+      <p>Play wants both languages in one box, each wrapped in language tags:</p>
+      <div class="field">
+        <header><strong>Combined release notes</strong><button type="button" data-copy="all-notes">Copy</button></header>
+        <pre id="all-notes" dir="auto">&lt;en-US&gt;
+Version 2.0 — rebuilt to match our online store.
+• Sign in with your phone number
+• Live gold &amp; silver prices; product prices follow the 21K rate
+• Full checkout: home delivery, branch pickup or branch vault; bank transfer or mada/card
+• Order progress tracking, tax invoices and bar certificates
+• Special offers, curated collections, photo galleries, smarter search
+• Price alerts and portfolio sync to your account
+Please sign in again after updating.
+&lt;/en-US&gt;
+&lt;ar&gt;
+الإصدار 2.0 — أُعيد بناؤه ليطابق متجرنا الإلكتروني.
+• تسجيل الدخول برقم الجوال
+• أسعار الذهب والفضة لحظياً، وأسعار المنتجات تتبع عيار 21
+• شراء كامل: توصيل منزلي أو استلام من الفرع أو خزنة الفرع؛ تحويل بنكي أو مدى/بطاقة
+• تتبع مراحل الطلب، الفواتير الضريبية وشهادات السبائك
+• العروض الخاصة، تشكيلات مختارة، معرض صور وبحث أذكى
+• تنبيهات الأسعار ومزامنة المحفظة مع حسابك
+يرجى تسجيل الدخول مجدداً بعد التحديث.
+&lt;/ar&gt;</pre>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="r-bundle"><label for="r-bundle">Version 100 added from the library</label></li>
+        <li><input type="checkbox" id="r-notes"><label for="r-notes">Release notes pasted for en-US and ar</label></li>
+        <li><input type="checkbox" id="r-rollout"><label for="r-rollout">Staged rollout set to 10%
+          <span class="sub">Then 25%, 50% and 100%, a day or two apart, while the crash rate stays under 1.09% and ANRs under 0.47% (Android vitals thresholds).</span></label></li>
+        <li><input type="checkbox" id="r-review"><label for="r-review">Send for review from Publishing overview
+          <span class="sub">Changes made since the last review are batched there; nothing goes out until you send them.</span></label></li>
+      </ul>
+    </section>
+
+    <section id="after" data-title="After review">
+      <div class="step-head">
+        <span class="n">07</span>
+        <h2>After you send it</h2>
+        <p>Review usually takes one to three days for an update; changes to data safety or app access can take longer.</p>
+      </div>
+      <ul class="tasks">
+        <li><input type="checkbox" id="a-approved"><label for="a-approved">Approval email received, and the listing shows 2.0 on a phone</label></li>
+        <li><input type="checkbox" id="a-vitals"><label for="a-vitals">Android vitals checked each day of the rollout before raising the percentage</label></li>
+        <li><input type="checkbox" id="a-reviews"><label for="a-reviews">Ratings and reviews read for "can't sign in" or "my cart is empty" reports from Expo users</label></li>
+        <li><input type="checkbox" id="a-reviewer"><label for="a-reviewer">Reviewer test number kept working; Play re-checks app access on later updates</label></li>
+      </ul>
+      <p class="note"><b>If it's rejected:</b> the email names the policy. The common ones for this app are App access (the test number didn't work), Data safety (a declared type doesn't match what Play observed) and Account deletion (the URL doesn't lead to a working request). Fix the form, then send the changes again from Publishing overview; you don't need a new bundle for those.</p>
+      <footer class="end">
+        <span>Source files: <code>store-assets/play/</code>, <code>rukn_flutter/RELEASE.md</code>, <code>docs/PUBLISHING.md</code></span>
+        <button type="button" id="reset">Clear all checkmarks</button>
+      </footer>
+    </section>
+
+  </main>
+</div>
+
+<script>
+(function () {
+  var KEY = 'rukn-play-guide-v1';
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { saved = {}; }
+  function store() { try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {} }
+
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('ul.tasks input[type="checkbox"]'));
+  boxes.forEach(function (b) { b.checked = !!saved[b.id]; });
+
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section'));
+  var rail = document.getElementById('rail');
+  sections.forEach(function (s, i) {
+    var li = document.createElement('li');
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<span class="n">' + String(i).padStart(2, '0') + '</span><span class="t"></span><span class="c"></span>';
+    a.querySelector('.t').textContent = s.dataset.title;
+    li.appendChild(a); rail.appendChild(li);
+    s._link = a;
+  });
+
+  function refresh() {
+    var done = 0;
+    sections.forEach(function (s) {
+      var bs = s.querySelectorAll('ul.tasks input[type="checkbox"]');
+      var d = 0;
+      bs.forEach(function (b) { if (b.checked) d++; });
+      done += d;
+      s._link.querySelector('.c').textContent = d + '/' + bs.length;
+      s._link.classList.toggle('done', bs.length > 0 && d === bs.length);
+    });
+    document.getElementById('meter-fill').style.width = (boxes.length ? done / boxes.length * 100 : 0) + '%';
+    document.getElementById('meter-text').textContent = done + ' of ' + boxes.length + ' done';
+  }
+  boxes.forEach(function (b) {
+    b.addEventListener('change', function () { saved[b.id] = b.checked; store(); refresh(); });
+  });
+  document.getElementById('reset').addEventListener('click', function () {
+    saved = {}; store(); boxes.forEach(function (b) { b.checked = false; }); refresh();
+  });
+  refresh();
+
+  document.querySelectorAll('.count').forEach(function (c) {
+    var el = document.getElementById(c.dataset.for);
+    var n = Array.from(el.textContent).length;
+    var max = +c.dataset.max;
+    c.textContent = n + ' / ' + max;
+    if (n > max) { c.classList.add('over'); c.textContent += ' · too long'; }
+  });
+
+  document.querySelectorAll('button[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = document.getElementById(btn.dataset.copy);
+      var text = el.textContent;
+      function done(ok) {
+        btn.textContent = ok ? 'Copied' : 'Selected, press Ctrl+C';
+        btn.classList.toggle('copied', ok);
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+      }
+      function select() {
+        var r = document.createRange(); r.selectNodeContents(el);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done(false);
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, select);
+      } else { select(); }
+    });
+  });
+})();
+</script>
+</body>
+</html>

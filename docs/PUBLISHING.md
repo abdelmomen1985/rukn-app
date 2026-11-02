@@ -344,15 +344,15 @@ Going jeweller-hopping? Plan a trip, log each store's quote — price, weight, k
 Automatic nisab check against 85 g of 24K gold, zakatable value and 2.5% due calculated from your live portfolio, with a per-asset breakdown. A simplified estimate — consult a qualified scholar for your final assessment.
 
 ■ THE SHOP
-Necklaces, rings, bracelets and earrings in certified gold. Browse by category, search, save to your wishlist, add to cart and check out with delivery arranged and payment confirmed with our team. Track your order history from your profile.
+Necklaces, rings, bangles and bars in certified gold, priced live from the 21K rate, with special offers and curated collections. Search, save to your wishlist and check out in the app: home delivery, branch pickup or safekeeping in the branch vault; pay by bank transfer or mada/card. Follow each order's progress, download tax invoices and verify bar certificates.
 
 ■ EXPERT CONSULTATION
-Request a private 45-minute video session with a market specialist for buy/sell and diversification guidance. Our team replies to confirm the time and how to pay — nothing is charged inside the app.
+Book a private session with a market specialist for buy/sell and diversification guidance, at a time that suits you. Paid sessions are settled on a secure hosted checkout.
 
 ■ BUILT FOR THE KINGDOM
 Arabic and English throughout with full right-to-left layout, Saudi Riyal pricing, VAT-aware calculations and 21K as a first-class karat. Works on phones and tablets.
 
-Your portfolio, wishlist and trip notes stay on your device unless you sign in and place an order. No ads, no data resale.
+As a guest, your portfolio, wishlist and trip notes stay on your device; sign in with your phone number to sync your portfolio to your account. No ads, no data resale.
 
 Questions, wholesale orders or custom pieces: support@<your-domain>
 ```
@@ -575,15 +575,15 @@ Add both stores' localized listings explicitly; the App Store and Play use the l
 فحص تلقائي للنصاب (85 جراماً من ذهب عيار 24)، مع حساب المال الزكوي والواجب 2.5% وتفصيل الأصول. تقدير مبسّط يعتمد على الأسعار الحالية، ويُرجى مراجعة أحد المتخصصين في أحكام الزكاة لشروط الحول ونحوها.
 
 ■ المتجر
-قلائد وخواتم وأساور وأقراط من الذهب المعتمد. ابحث وتصفّح حسب التصنيف، وأضف إلى المفضلة وسلّة الشراء، ثم أكمل الطلب وسنتواصل معك لتأكيد الدفع والتوصيل، وتابع حالة طلباتك من حسابك.
+قلائد وخواتم وبناجر وسبائك من الذهب المعتمد، بأسعار تتبع سعر عيار 21 لحظياً، مع العروض الخاصة والتشكيلات المختارة. ابحث وأضف إلى المفضلة وأكمل الشراء داخل التطبيق: توصيل منزلي أو استلام من الفرع أو حفظ في خزنة الفرع، والدفع بالتحويل البنكي أو مدى/البطاقة. تابع مراحل كل طلب، وحمّل الفواتير الضريبية، وتحقق من شهادات السبائك.
 
 ■ استشارة متخصصة
-اطلب جلسة فيديو خاصة مدتها 45 دقيقة مع متخصص في السوق: تحليل مخصص لمحفظتك، ونصائح للشراء والبيع والتنويع. يتواصل معك فريقنا لتأكيد الموعد وطريقة الدفع، ولا يتم أي دفع داخل التطبيق.
+احجز جلسة خاصة مع متخصص في السوق في الوقت المناسب لك: تحليل لمحفظتك، ونصائح للشراء والبيع والتنويع. تُدفع الجلسات المدفوعة عبر صفحة دفع آمنة.
 
 ■ مصمَّم للسعودية
 لغتان كاملتان مع اتجاه من اليمين إلى اليسار، وأسعار بالريال السعودي، وحسابات تراعي ضريبة القيمة المضافة، وعيار 21 معاملة أساسية. يعمل على الجوال والتابلت.
 
-بياناتك — محفظتك ومفضلتك وجولاتك — تبقى على جهازك، ولا تُزامَن إلا إذا أنشأت حساباً وأتممت طلباً. بدون إعلانات ولا بيع للبيانات.
+كزائر، تبقى محفظتك ومفضلتك وجولاتك على جهازك؛ سجّل الدخول برقم جوالك لمزامنة المحفظة مع حسابك. بدون إعلانات ولا بيع للبيانات.
 
 للاستفسار والطلبات الخاصة: support@<your-domain>
 ```

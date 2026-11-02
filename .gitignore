@@ -67,3 +67,6 @@ Thumbs.db
 # Cached webfonts for the Play store-asset generator
 scripts/store-assets/.fonts/
 scripts/store-assets/.render/
+
+# screenshot engine scratch (raw captures, frame HTML)
+store-assets/play/.render/
