@@ -11,7 +11,7 @@
 const prefs = (obj) =>
   Object.fromEntries(Object.entries(obj).map(([k, v]) => [`flutter.${k}`, JSON.stringify(v)]));
 
-const PRODUCT_ID = 'prod_01M40S397RG7MVW8G77J1M4WCG'; // a bangle with a three-photo gallery
+const PRODUCT_ID = 'prod_01M344J95EV1EDF365S3Y4G93Y'; // 10 g bar with a two-photo gallery
 const NOW = '2026-11-01T09:00:00.000Z';
 
 const asset = (o) => {
