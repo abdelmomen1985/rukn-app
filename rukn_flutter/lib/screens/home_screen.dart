@@ -121,7 +121,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _products.addAll(page.products);
         _count = page.count;
       });
-    } catch (e) {
+    } catch (e, s) {
+      debugPrint('home products failed: $e\n$s');
       if (mounted) setState(() => _error = e);
     } finally {
       if (mounted) {
