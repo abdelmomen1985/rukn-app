@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'core/platform_features.dart';
 import 'core/theme.dart';
 import 'l10n/i18n.dart';
 import 'screens/account_screens.dart';
@@ -71,7 +72,13 @@ final GoRouter appRouter = GoRouter(
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/asset/:id', builder: (_, s) => AssetDetailScreen(assetId: s.pathParameters['id']!)),
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/zakat', builder: (_, _) => const ZakatScreen()),
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/converter', builder: (_, _) => const ConverterScreen()),
-    GoRoute(parentNavigatorKey: _rootKey, path: '/invest/consultation', builder: (_, _) => const ConsultationScreen()),
+    GoRoute(
+      parentNavigatorKey: _rootKey,
+      path: '/invest/consultation',
+      // Off on iOS: deep links and home banners land on the Invest tab instead.
+      redirect: (_, _) => consultationsEnabled ? null : '/invest',
+      builder: (_, _) => const ConsultationScreen(),
+    ),
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/alerts', builder: (_, _) => const AlertsScreen()),
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/trips', builder: (_, _) => const TripsListScreen()),
     GoRoute(parentNavigatorKey: _rootKey, path: '/invest/trips/new', builder: (_, _) => const NewTripScreen()),

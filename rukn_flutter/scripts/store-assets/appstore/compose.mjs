@@ -67,10 +67,13 @@ const browser = await puppeteer.launch({
 });
 const htmlDir = path.join(path.dirname(rawDir), 'compose-html');
 fs.mkdirSync(htmlDir, { recursive: true });
+// Screens the iOS build leaves out (lib/core/platform_features.dart): the Play set keeps them.
+const IOS_EXCLUDED = new Set(['08-consultation']);
 let n = 0;
 for (const [devName, dev] of Object.entries(DEVICES)) {
   for (const [locale, loc] of Object.entries(config.locales)) {
     for (const shot of config.shots()) {
+      if (IOS_EXCLUDED.has(shot.name)) continue;
       const raw = path.join(rawDir, locale, devName, `${shot.name}.png`);
       if (!fs.existsSync(raw)) { console.log('missing', raw); continue; }
       const cap = shot.caption[locale];

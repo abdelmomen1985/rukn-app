@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/format.dart';
+import '../../core/platform_features.dart';
 import '../../core/theme.dart';
 import '../../l10n/i18n.dart';
 import '../../models/portfolio.dart';
@@ -281,7 +282,8 @@ class _Tools extends StatelessWidget {
     final tools = [
       (Icons.shopping_bag_outlined, i18n.t('tripsCardLabel'), tripsActive > 0 ? '$tripsActive ${i18n.t('tripStatusActive')}' : i18n.t('tripsCardHelper'), const Color(0xFFA4313F), '/invest/trips'),
       (Icons.notifications_active_outlined, i18n.t('priceAlerts'), alerts > 0 ? i18n.t('activeAlertsCount', {'n': alerts}) : i18n.t('priceAlertsSubtitle'), const Color(0xFF2563EB), '/invest/alerts'),
-      (Icons.support_agent, i18n.t('consultationTitle'), i18n.t('consultationShort'), const Color(0xFF059669), '/invest/consultation'),
+      if (consultationsEnabled)
+        (Icons.support_agent, i18n.t('consultationTitle'), i18n.t('consultationShort'), const Color(0xFF059669), '/invest/consultation'),
       (Icons.candlestick_chart_outlined, i18n.t('livePrices'), i18n.t('livePricesSubtitle'), AppColors.primary, '/pricing'),
     ];
     return Padding(

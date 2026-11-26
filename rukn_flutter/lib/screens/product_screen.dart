@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../core/format.dart';
+import '../core/platform_features.dart';
 import '../core/theme.dart';
 import '../l10n/i18n.dart';
 import '../models/product.dart';
@@ -54,9 +55,11 @@ class _ProductScreenState extends State<ProductScreen> {
       if (p != null) {
         stampBaseline(context, [p]);
         _initChoices(p);
-        CatalogService.listReviews(p.id).then((r) {
-          if (mounted) setState(() => _reviews = r);
-        }).catchError((_) {});
+        if (reviewsEnabled) {
+          CatalogService.listReviews(p.id).then((r) {
+            if (mounted) setState(() => _reviews = r);
+          }).catchError((_) {});
+        }
         StoreSettings.productVat([p.id]).then((v) {
           if (mounted) setState(() => _vat = v);
         });
@@ -287,8 +290,10 @@ class _ProductScreenState extends State<ProductScreen> {
                   SectionLabel(i18n.t('productDetails')),
                   Text(p.description!.trim(), style: const TextStyle(color: Color(0xFF444444), height: 1.7)),
                 ],
-                const SizedBox(height: 24),
-                _ReviewsSection(product: p, reviews: _reviews),
+                if (reviewsEnabled) ...[
+                  const SizedBox(height: 24),
+                  _ReviewsSection(product: p, reviews: _reviews),
+                ],
               ],
             ),
           ),

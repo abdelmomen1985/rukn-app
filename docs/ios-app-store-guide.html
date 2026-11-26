@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; }
+    img { max-width: 100%; }
+    [hidden] { display: none !important; }
+  </style>
+  <title>Rukn Thamin iOS Launch — App Store Connect guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <style>
+/* Layout: sticky step rail on the left, one long checklist on the right; one column on phones. */
+:root {
+  --bg: #f5f4ef; --surface: #ffffff; --ink: #14221d; --muted: #5c6b64; --line: #dcded6;
+  --brand: #07352b; --gold: #a87b1f; --gold-soft: #f3e7c9;
+  --ok: #1f7a4d; --ok-soft: #dff1e6; --warn: #9a5b00; --warn-soft: #fbecd2;
+  --bad: #b3261e; --bad-soft: #fbe1de; --code-bg: #eef0ea;
+  --f-body: "Cairo", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0c1613; --surface: #13201c; --ink: #e6ece8; --muted: #93a39b; --line: #27372f;
+    --brand: #7fc4ad; --gold: #e0b55a; --gold-soft: #3a2f17;
+    --ok: #6fcf97; --ok-soft: #173326; --warn: #f0b860; --warn-soft: #3a2a12;
+    --bad: #f28b82; --bad-soft: #3d1c19; --code-bg: #1a2a25;
+  }
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15.5px; line-height: 1.6; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 28px 80px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { display: grid; gap: 14px; padding-bottom: 22px; border-bottom: 1px solid var(--line); margin-bottom: 26px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold); }
+h1 { font-weight: 800; font-size: clamp(28px, 4.2vw, 42px); line-height: 1.15; margin: 0; text-wrap: balance; color: var(--brand); }
+.lede { margin: 0; max-width: 68ch; color: var(--muted); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.fact { font-family: var(--f-mono); font-size: 12.5px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.fact b { font-weight: 500; color: var(--gold); }
+
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 36px; align-items: start; }
+nav.rail { position: sticky; top: 16px; display: grid; gap: 14px; }
+.progress { display: grid; gap: 6px; }
+.progress .bar { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.progress .fill { height: 100%; width: 0; background: var(--gold); transition: width .25s; }
+.progress .label { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rail ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.rail a { display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; color: var(--ink); text-decoration: none; font-size: 14px; }
+.rail a:hover, .rail a:focus-visible { background: var(--surface); outline: none; }
+.rail .n { font-family: var(--f-mono); font-size: 12px; color: var(--muted); }
+.rail .c { font-family: var(--f-mono); font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rail a.done .c { color: var(--ok); }
+.reset { justify-self: start; font: inherit; font-size: 13px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.reset:focus-visible, .copy:focus-visible, .tab:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+main { display: grid; gap: 40px; min-width: 0; }
+section.step { display: grid; gap: 16px; scroll-margin-top: 20px; min-width: 0; }
+.step-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; align-items: baseline; }
+.step-num { font-family: var(--f-mono); font-size: 13px; color: var(--gold); grid-row: span 2; padding-top: 6px; }
+h2 { font-size: 23px; font-weight: 700; margin: 0; line-height: 1.3; text-wrap: balance; }
+.where { font-size: 13.5px; color: var(--muted); margin: 0; }
+.where code { font-size: 12.5px; }
+h3 { font-size: 16px; font-weight: 700; margin: 6px 0 0; }
+p { margin: 0; max-width: 72ch; }
+code { font-family: var(--f-mono); font-size: 13px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { font-family: var(--f-mono); font-size: 13px; background: var(--code-bg); padding: 12px 14px; border-radius: 8px; margin: 0; overflow-x: auto; }
+a { color: var(--brand); }
+
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.checks li label { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.checks input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--ok); }
+.checks input:checked + span { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--line); }
+
+.note { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 12px 14px; border-radius: 8px; font-size: 14.5px; }
+.note .tag { font-family: var(--f-mono); font-size: 11px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; height: fit-content; margin-top: 2px; }
+.note.warn { background: var(--warn-soft); } .note.warn .tag { background: var(--warn); color: var(--surface); }
+.note.bad { background: var(--bad-soft); } .note.bad .tag { background: var(--bad); color: var(--surface); }
+.note.ok { background: var(--ok-soft); } .note.ok .tag { background: var(--ok); color: var(--surface); }
+.note p { max-width: none; }
+
+.fields { display: grid; gap: 10px; }
+.field { display: grid; gap: 6px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.field .fh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; justify-content: space-between; }
+.field .fl { font-size: 13px; font-weight: 700; color: var(--muted); }
+.field .cnt { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.field .cnt.over { color: var(--bad); }
+.field .val { font-family: var(--f-mono); font-size: 13.5px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; max-height: 280px; overflow-y: auto; }
+.field .val[dir="rtl"] { font-family: var(--f-body); font-size: 15px; }
+.copy { font: inherit; font-size: 12.5px; font-weight: 600; color: var(--brand); background: var(--gold-soft); border: 0; border-radius: 5px; padding: 3px 10px; cursor: pointer; }
+.copy.done { background: var(--ok-soft); color: var(--ok); }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab { font: inherit; font-size: 14px; font-weight: 600; padding: 5px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.tab[aria-selected="true"] { background: var(--brand); color: var(--bg); border-color: var(--brand); }
+
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.mono { font-family: var(--f-mono); font-size: 12.5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pill { display: inline-block; font-family: var(--f-mono); font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.todo { background: var(--bad-soft); color: var(--bad); }
+.pill.check { background: var(--warn-soft); color: var(--warn); }
+.pill.opt { background: var(--code-bg); color: var(--muted); }
+
+.shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.shot { padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; font-size: 13.5px; }
+.shot b { font-family: var(--f-mono); font-size: 11.5px; color: var(--gold); display: block; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.thumbs figure { margin: 0; display: grid; gap: 6px; }
+.thumbs img { display: block; width: 100%; border-radius: 8px; border: 1px solid var(--line); }
+.thumbs figcaption { font-size: 13px; color: var(--muted); }
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav.rail { position: static; }
+  .rail ol { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { .progress .fill { transition: none; } html { scroll-behavior: auto; } }
+html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">App Store Connect · first iOS release</span>
+    <h1>Rukn Thamin iOS Launch</h1>
+    <p class="lede">Every field App Store Connect asks for, filled in, in the order you meet them: upload, app information, tags, privacy, screenshots and header art, listing text in English and Arabic, review notes, pricing, submit. Tick items as you go; progress stays in this browser.</p>
+    <div class="facts">
+      <span class="fact"><b>Bundle ID</b> com.ruknthamin.app</span>
+      <span class="fact"><b>Version</b> 2.0.0 (100)</span>
+      <span class="fact"><b>Team</b> 222RPHJ4CS</span>
+      <span class="fact"><b>Min iOS</b> 15.0</span>
+      <span class="fact"><b>Devices</b> iPhone + iPad</span>
+      <span class="fact"><b>Seller entity</b> Al Rukn Al Thamin Gold &amp; Jewelry · CR 7041480281</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="rail" aria-label="Steps">
+      <div class="progress">
+        <div class="bar"><div class="fill" id="pfill"></div></div>
+        <span class="label" id="plabel">0 of 0 done</span>
+      </div>
+      <ol id="toc"></ol>
+      <button class="reset" id="reset" type="button">Clear all ticks</button>
+    </nav>
+
+    <main>
+      <!-- 1 -->
+      <section class="step" id="blockers" data-title="Fix blockers">
+        <div class="step-head"><span class="step-num">01</span><h2>Clear the blockers first</h2><p class="where">These will get the app rejected or stop review from starting.</p></div>
+        <div class="note bad"><span class="tag">Blocker</span><p><b>Reviewer sign-in.</b> The app signs in with phone + OTP only. Apple's reviewer can't receive your SMS, so they can't reach checkout, orders or account deletion. Set up a test phone number on the production backend that always accepts a fixed code, and put both in the review notes (step 09).</p></div>
+        <div class="note bad"><span class="tag">Blocker</span><p><b>Account deletion must really work</b> (guideline 5.1.1(v)). Profile → Delete account calls <code>DELETE /store/customers/me</code>. Confirm production implements it. The website's <code>/delete-account</code> form isn't wired to anything yet (<code>rukn_flutter/RELEASE.md</code>).</p></div>
+        <div class="note bad"><span class="tag">Blocker</span><p><b>Age rating questions.</b> Since 31 January 2026 App Store Connect won't let you submit until the updated age-rating questionnaire is answered (in-app controls, capabilities, medical/wellness, violent themes). Answers are in step 04.</p></div>
+        <div class="note ok"><span class="tag">Ready</span><p><b>Screenshots and header art are made.</b> 48 screenshots plus two header images at Apple's exact sizes are in <code>store-assets/appstore/</code>. See step 07.</p></div>
+        <div class="note warn"><span class="tag">Check</span><p><b>Seller name.</b> On an Individual developer account the App Store shows the person's name as the seller, not the company. To show "Al Rukn Al Thamin Gold &amp; Jewelry", the account must be an Organization (needs a D-U-N-S number).</p></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-otp"><span>Reviewer test phone number with a fixed OTP works on production</span></label></li>
+          <li><label><input type="checkbox" id="c-del"><span>In-app account deletion works end-to-end on production</span></label></li>
+          <li><label><input type="checkbox" id="c-delweb"><span><code>rknthmin.com.sa/delete-account</code> form actually sends a request</span></label></li>
+          <li><label><input type="checkbox" id="c-analytics"><span>Backend accepts <code>platform: ios</code> on <code>/store/analytics/collect</code></span></label></li>
+        </ul>
+      </section>
+
+      <!-- 2 -->
+      <section class="step" id="upload" data-title="Upload build">
+        <div class="step-head"><span class="step-num">02</span><h2>Upload the build</h2><p class="where">Built and signed: <code>rukn_flutter/build/ios/ipa/Rukn Thamin.ipa</code></p></div>
+        <p>Pick one way. All three end in App Store Connect → your app → TestFlight, where the build shows "Processing" for 10–30 minutes.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Method</th><th>How</th><th>Needs</th></tr></thead>
+          <tbody>
+            <tr><td><b>Xcode Organizer</b></td><td>Open <code>build/ios/archive/Runner.xcarchive</code> → Distribute App → App Store Connect → Upload</td><td>The team's Apple ID in Xcode</td></tr>
+            <tr><td><b>Transporter</b></td><td>Install Transporter from the Mac App Store, sign in, drag the <code>.ipa</code> in, Deliver</td><td>An Apple ID with access to the app</td></tr>
+            <tr><td><b>Command line</b></td><td>The <code>xcrun altool</code> command below</td><td>An App Store Connect API key (team key)</td></tr>
+          </tbody>
+        </table></div>
+        <pre>xcrun altool --upload-app --type ios \
+  -f "build/ios/ipa/Rukn Thamin.ipa" \
+  --apiKey &lt;KEY_ID&gt; --apiIssuer &lt;ISSUER_ID&gt;</pre>
+        <div class="note ok"><span class="tag">Done</span><p>Export compliance is answered in the binary (<code>ITSAppUsesNonExemptEncryption = false</code>), so the build won't wait on the encryption question.</p></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-up"><span>Build uploaded</span></label></li>
+          <li><label><input type="checkbox" id="c-proc"><span>Build finished processing in TestFlight</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 3 -->
+      <section class="step" id="testflight" data-title="TestFlight check">
+        <div class="step-head"><span class="step-num">03</span><h2>Test it on a real iPhone</h2><p class="where">TestFlight → Internal Testing → add a group with your team</p></div>
+        <p>Internal testers get the build right away, without Apple review. Run through what the reviewer will do.</p>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-tf1"><span>Sign in with a real number, and with the reviewer test number</span></label></li>
+          <li><label><input type="checkbox" id="c-tf2"><span>Place an order: delivery and branch pickup, bank transfer with receipt photo, mada/card on the Paymob page</span></label></li>
+          <li><label><input type="checkbox" id="c-tf3"><span>Camera and photo-library prompts appear only when attaching a receipt</span></label></li>
+          <li><label><input type="checkbox" id="c-tf4"><span>Arabic layout is right-to-left on every screen</span></label></li>
+          <li><label><input type="checkbox" id="c-tf5"><span>Open the app on an iPad (it supports iPad, so the reviewer may test there)</span></label></li>
+          <li><label><input type="checkbox" id="c-tf6"><span>Delete a test account from Profile</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 4 -->
+      <section class="step" id="appinfo" data-title="App information">
+        <div class="step-head"><span class="step-num">04</span><h2>App information</h2><p class="where">Your app → General → App Information. Add Arabic from the language menu at the top right.</p></div>
+        <div class="tabs" role="tablist" data-group="info">
+          <button class="tab" role="tab" aria-selected="true" data-lang="en" type="button">English (U.S.)</button>
+          <button class="tab" role="tab" aria-selected="false" data-lang="ar" type="button">Arabic</button>
+        </div>
+        <div class="fields" data-pane="info-en">
+          <div class="field" data-max="30"><div class="fh"><span class="fl">Name</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">Rukn Thamin: Gold &amp; Jewelry</p></div>
+          <div class="field" data-max="30"><div class="fh"><span class="fl">Subtitle</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">Live Gold Price, Zakat &amp; Shop</p></div>
+          <div class="field"><div class="fh"><span class="fl">Privacy Policy URL</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/en/privacy</p></div>
+        </div>
+        <div class="fields" data-pane="info-ar" hidden>
+          <div class="field" data-max="30"><div class="fh"><span class="fl">Name</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val" dir="rtl">ركن ثمين: ذهب ومجوهرات</p></div>
+          <div class="field" data-max="30"><div class="fh"><span class="fl">Subtitle</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val" dir="rtl">سعر الذهب لحظياً وحاسبة الزكاة</p></div>
+          <div class="field"><div class="fh"><span class="fl">Privacy Policy URL</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/ar/privacy</p></div>
+        </div>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Answer</th></tr></thead>
+          <tbody>
+            <tr><td>Primary language</td><td>English (U.S.). Apple builds App Store Tags from the en-US metadata only, so keep English primary and add Arabic as a localization.</td></tr>
+            <tr><td>Bundle ID</td><td><code>com.ruknthamin.app</code></td></tr>
+            <tr><td>SKU (set once, when creating the app)</td><td><code>rukn-thamin-ios-1</code></td></tr>
+            <tr><td>Primary category</td><td>Shopping</td></tr>
+            <tr><td>Secondary category</td><td>Finance</td></tr>
+            <tr><td>Content rights</td><td>No, it doesn't contain, show or access third-party content</td></tr>
+            <tr><td>User Privacy Choices URL</td><td><span class="pill opt">optional</span> leave empty</td></tr>
+            <tr><td>License agreement</td><td>Apple's standard EULA</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Age rating questionnaire (updated 2025 version)</h3>
+        <p>App Information → Age Rating → Edit. Ratings are now 4+, 9+, 13+, 16+ and 18+; these answers give <b>4+</b>.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Section → question</th><th>Answer</th></tr></thead>
+          <tbody>
+            <tr><td>In-app controls → Parental controls</td><td>No</td></tr>
+            <tr><td>In-app controls → Age assurance</td><td>No</td></tr>
+            <tr><td>Capabilities → Unrestricted web access</td><td>No (Paymob checkout and your own legal pages open in a web view, not a free browser)</td></tr>
+            <tr><td>Capabilities → User-generated content</td><td>No</td></tr>
+            <tr><td>Capabilities → Messaging and chat</td><td>No (WhatsApp opens the external app)</td></tr>
+            <tr><td>Capabilities → Advertising</td><td>No</td></tr>
+            <tr><td>Mature themes, profanity, horror/fear, alcohol/tobacco/drugs, sexual content, nudity</td><td>None</td></tr>
+            <tr><td>Medical or treatment information, health or wellness topics</td><td>None</td></tr>
+            <tr><td>Violence (cartoon, realistic, prolonged, graphic), guns or weapons</td><td>None</td></tr>
+            <tr><td>Simulated gambling, contests, gambling, loot boxes</td><td>None / No</td></tr>
+            <tr><td>Age suitability override (higher minimum age)</td><td>Don't set one</td></tr>
+            <tr><td>Made for Kids</td><td>No</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>App Store Tags</h3>
+        <p>App Information → <b>App Store Tags</b> → Edit. Apple assigns tags itself from the English metadata, AI and human curation; you can't add your own, only untick ones that don't fit. They show in the U.S. storefront only. If the section is empty, it fills in after the English metadata has been processed.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>If Apple suggests a tag like…</th><th>Do</th></tr></thead>
+          <tbody>
+            <tr><td>Jewelry, gold, shopping, online store</td><td><span class="pill ok">keep</span></td></tr>
+            <tr><td>Precious metals prices, gold price tracker, market data</td><td><span class="pill ok">keep</span></td></tr>
+            <tr><td>Investment portfolio, asset tracker, personal finance</td><td><span class="pill ok">keep</span></td></tr>
+            <tr><td>Zakat, Islamic finance, calculators, unit converter</td><td><span class="pill ok">keep</span></td></tr>
+            <tr><td>Stock trading, crypto, brokerage, banking, loans</td><td><span class="pill todo">untick</span> the app doesn't trade or hold money</td></tr>
+            <tr><td>Fashion, clothing, deals/coupons, social shopping</td><td><span class="pill todo">untick</span> off-topic</td></tr>
+          </tbody>
+        </table></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-ai1"><span>English name, subtitle, categories, content rights saved</span></label></li>
+          <li><label><input type="checkbox" id="c-ai2"><span>Arabic localization added with name and subtitle</span></label></li>
+          <li><label><input type="checkbox" id="c-ai3"><span>Updated age rating questionnaire done (4+)</span></label></li>
+          <li><label><input type="checkbox" id="c-ai4"><span>Privacy Policy URLs saved for both languages</span></label></li>
+          <li><label><input type="checkbox" id="c-ai5"><span>App Store Tags reviewed</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 5 -->
+      <section class="step" id="privacy" data-title="App privacy">
+        <div class="step-head"><span class="step-num">05</span><h2>App privacy labels</h2><p class="where">Your app → General → App Privacy → Get Started. Must match <code>ios/Runner/PrivacyInfo.xcprivacy</code>.</p></div>
+        <p>Answer <b>Yes, we collect data</b>. For every type below: <b>not used for tracking</b>. Card details are typed on Paymob's hosted page, so don't declare payment info.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Category → type</th><th>Purpose</th><th>Linked to user</th></tr></thead>
+          <tbody>
+            <tr><td>Contact Info → Name</td><td>App Functionality</td><td>Yes</td></tr>
+            <tr><td>Contact Info → Email Address</td><td>App Functionality</td><td>Yes</td></tr>
+            <tr><td>Contact Info → Phone Number</td><td>App Functionality</td><td>Yes</td></tr>
+            <tr><td>Contact Info → Physical Address</td><td>App Functionality</td><td>Yes</td></tr>
+            <tr><td>Purchases → Purchase History</td><td>App Functionality, Analytics</td><td>Yes</td></tr>
+            <tr><td>User Content → Photos or Videos</td><td>App Functionality (bank receipt)</td><td>Yes</td></tr>
+            <tr><td>Financial Info → Other Financial Info</td><td>App Functionality (portfolio sync)</td><td>Yes</td></tr>
+            <tr><td>Usage Data → Product Interaction</td><td>Analytics</td><td><span class="pill check">confirm</span></td></tr>
+            <tr><td>Search History</td><td>Analytics</td><td><span class="pill check">confirm</span></td></tr>
+            <tr><td>Identifiers → User ID</td><td>App Functionality, Analytics</td><td>Yes</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note warn"><span class="tag">Check</span><p>For "confirm" rows: if analytics events carry the customer's ID after sign-in, answer "linked". If they only carry the random install ID, answer "not linked". Match the privacy manifest.</p></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-pv1"><span>All 10 data types entered with purposes</span></label></li>
+          <li><label><input type="checkbox" id="c-pv2"><span>Privacy labels published</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 6 -->
+      <section class="step" id="a11y" data-title="Accessibility">
+        <div class="step-head"><span class="step-num">06</span><h2>Accessibility Nutrition Labels</h2><p class="where">Your app → General → App Accessibility. <span class="pill opt">optional</span></p></div>
+        <p>Not required to submit. Each claim (VoiceOver, Voice Control, Larger Text, Dark Interface, Differentiate Without Color, Sufficient Contrast, Reduced Motion, Captions, Audio Descriptions) means the app supports it across its <b>common tasks</b>, and users can report wrong claims.</p>
+        <div class="note warn"><span class="tag">Recommend</span><p>Skip this for the first release. Fill it only after testing VoiceOver and Larger Text on sign-in, browsing, checkout and the invest screens. An empty label shows "Not provided"; a wrong one invites complaints.</p></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-ax1"><span>Decided: skip for now, or tested and declared</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 7 -->
+      <section class="step" id="assets" data-title="Screenshots & header">
+        <div class="step-head"><span class="step-num">07</span><h2>Screenshots and header art</h2><p class="where">iOS App → 2.0 Prepare for Submission → Product Page Information. Everything is in <code>store-assets/appstore/</code>.</p></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Asset</th><th>Size</th><th>Count</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>App icon</td><td class="mono">1024×1024, no alpha</td><td>1</td><td><span class="pill ok">in the build</span></td></tr>
+            <tr><td>iPhone 6.9″ screenshots, English<br><code>en-US/iphone-6.9in-1320x2868/</code></td><td class="mono">1320×2868</td><td>8</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>iPhone 6.9″ screenshots, Arabic<br><code>ar/iphone-6.9in-1320x2868/</code></td><td class="mono">1320×2868</td><td>8</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>iPhone 6.1″/6.3″ screenshots, English<br><code>en-US/iphone-6.3in-1206x2622/</code></td><td class="mono">1206×2622</td><td>8</td><td><span class="pill ok">ready · required</span></td></tr>
+            <tr><td>iPhone 6.1″/6.3″ screenshots, Arabic<br><code>ar/iphone-6.3in-1206x2622/</code></td><td class="mono">1206×2622</td><td>8</td><td><span class="pill ok">ready · required</span></td></tr>
+            <tr><td>iPad 13″ screenshots, English<br><code>en-US/ipad-13in-2064x2752/</code></td><td class="mono">2064×2752</td><td>8</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>iPad 13″ screenshots, Arabic<br><code>ar/ipad-13in-2064x2752/</code></td><td class="mono">2064×2752</td><td>8</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>Header asset, universal 16:9<br><code>header/universal-16x9-5244x2950.png</code></td><td class="mono">5244×2950 PNG</td><td>1</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>Header asset, 21:9 (alternative)<br><code>header/header-21x9-3840x1646.png</code></td><td class="mono">3840×1646 PNG</td><td>—</td><td><span class="pill ok">ready</span></td></tr>
+            <tr><td>App preview video</td><td class="mono">886×1920, 15–30 s</td><td>0–3</td><td><span class="pill opt">optional</span></td></tr>
+          </tbody>
+        </table></div>
+        <div class="note warn"><span class="tag">Why iPad</span><p>The app targets iPhone and iPad (<code>TARGETED_DEVICE_FAMILY = 1,2</code>), so the 13″ iPad set is required. To drop iPad, remove it in Xcode (General → Supported Destinations), rebuild and upload build 101.</p></div>
+        <h3>Screenshots</h3>
+        <p>On the <b>App Previews and Screenshots</b> tab, drag each folder onto the matching slot in filename order: <code>iphone-6.3in-1206x2622</code> onto <b>6.1″/6.3″</b> (required), <code>iphone-6.9in-1320x2868</code> onto <b>6.9″</b> (open "View All Sizes in Media Manager" if it isn't shown), <code>ipad-13in-2064x2752</code> onto <b>iPad 13″</b>. Then switch the language (top right) to Arabic and repeat with the <code>ar/</code> folders. Dropping a folder on the wrong slot fails with "File dimensions are invalid".</p>
+        <div class="shots">
+          <div class="shot"><b>01 · shop</b>Home shop grid with live 21K pricing</div>
+          <div class="shot"><b>02 · product</b>Product page with photo gallery</div>
+          <div class="shot"><b>03 · live prices</b>24K–18K, silver, platinum in SAR/g</div>
+          <div class="shot"><b>04 · portfolio</b>Holdings revalued at today's price</div>
+          <div class="shot"><b>05 · asset detail</b>Gain, loss and annualized return</div>
+          <div class="shot"><b>06 · trips</b>Three store quotes: excellent, fair, high</div>
+          <div class="shot"><b>07 · zakat</b>Nisab check and 2.5% due</div>
+        </div>
+        <h3>Header asset</h3>
+        <p>On the <b>Header and Search Results</b> tab → Header → <b>Upload</b> (or Browse Assets if you put it in the Asset Library first). Upload <code>universal-16x9-5244x2950.png</code> and tick <b>use header asset in search results</b>, so one image covers both. If you'd rather keep search results plain, upload the 21:9 file instead. Both are text-free PNGs without alpha, with the necklace inside Apple's art safe area.</p>
+        <div class="thumbs">
+          <figure><img src="../store-assets/appstore/header/review/universal-16x9-5244x2950-safe-area.png" alt="Universal header: gold and emerald necklace on green velvet, safe area outlined"><figcaption>Universal 16:9, safe area 1402×962 outlined</figcaption></figure>
+          <figure><img src="../store-assets/appstore/header/review/header-21x9-3840x1646-safe-area.png" alt="21:9 header: the same necklace, safe area outlined"><figcaption>Header 21:9, safe area 1646×661 outlined</figcaption></figure>
+        </div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-as7"><span>iPhone 6.1″/6.3″ English set uploaded</span></label></li>
+          <li><label><input type="checkbox" id="c-as8"><span>iPhone 6.1″/6.3″ Arabic set uploaded</span></label></li>
+          <li><label><input type="checkbox" id="c-as1"><span>iPhone 6.9″ English set uploaded</span></label></li>
+          <li><label><input type="checkbox" id="c-as2"><span>iPhone 6.9″ Arabic set uploaded</span></label></li>
+          <li><label><input type="checkbox" id="c-as3"><span>iPad 13″ English set uploaded (or iPad support removed)</span></label></li>
+          <li><label><input type="checkbox" id="c-as4"><span>iPad 13″ Arabic set uploaded (or iPad support removed)</span></label></li>
+          <li><label><input type="checkbox" id="c-as6"><span>Header asset uploaded (universal 5244×2950)</span></label></li>
+          <li><label><input type="checkbox" id="c-as5"><span>No "best" claims, no fake data, no Android frames in any image</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 8 -->
+      <section class="step" id="listing" data-title="Version listing">
+        <div class="step-head"><span class="step-num">08</span><h2>Version listing text</h2><p class="where">iOS App → 2.0 Prepare for Submission. Switch language at the top right for Arabic.</p></div>
+        <div class="tabs" role="tablist" data-group="list">
+          <button class="tab" role="tab" aria-selected="true" data-lang="en" type="button">English (U.S.)</button>
+          <button class="tab" role="tab" aria-selected="false" data-lang="ar" type="button">Arabic</button>
+        </div>
+        <div class="fields" data-pane="list-en">
+          <div class="field" data-max="170"><div class="fh"><span class="fl">Promotional text</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">Live SAR gold rates, zakat calculator and shopping-trip quote comparison, plus certified 21K pieces. Arabic &amp; English.</p></div>
+          <div class="field" data-max="4000"><div class="fh"><span class="fl">Description</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">Rukn Thamin is the gold companion for Saudi buyers — real-time prices, honest numbers, and certified jewelry in one bilingual (Arabic/English, RTL-ready) app.
+
+■ LIVE GOLD &amp; SILVER PRICES
+Track 24K, 22K, 21K, 18K gold plus silver, platinum and palladium in Saudi Riyals per gram, updated from live spot data. Switch freely between grams, tolas, ounces and mithqal, and see exactly when a quote was refreshed.
+
+■ PRICE A PIECE IN SECONDS
+The gold value calculator turns weight + karat + making charges + VAT into what a piece should actually cost. The weight converter handles grams, tolas, ounces and mithqal in one tap.
+
+■ MY INVESTMENTS
+Add every gold bar, coin and piece of jewelry you own — purchase price, making charges and VAT included. Rukn Thamin revalues the whole portfolio at today's spot price and shows current value, gain/loss, percentage and annualized return, plus an allocation chart by metal. Pull to refresh at any time.
+
+■ SHOPPING TRIPS (جولات التسوق)
+Going jeweller-hopping? Plan a trip, log each store's quote — price, weight, karat, VAT included or not, local or imported workmanship — and let the app flag each quote as excellent, fair or high against the live market reference. Compare side by side, add notes, then close the trip with the best deal in hand.
+
+■ ZAKAT CALCULATOR
+Automatic nisab check against 85 g of 24K gold, zakatable value and 2.5% due calculated from your live portfolio, with a per-asset breakdown. A simplified estimate — consult a qualified scholar for your final assessment.
+
+■ THE SHOP
+Necklaces, rings, bangles and bars in certified gold, priced live from the 21K rate, with special offers and curated collections. Search, save to your wishlist and check out in the app: home delivery, branch pickup or safekeeping in the branch vault; pay by bank transfer or mada/card. Follow each order's progress, download tax invoices and verify bar certificates.
+
+■ BUILT FOR THE KINGDOM
+Arabic and English throughout with full right-to-left layout, Saudi Riyal pricing, VAT-aware calculations and 21K as a first-class karat. Works on phones and tablets.
+
+As a guest, your portfolio, wishlist and trip notes stay on your device; sign in with your phone number to sync your portfolio to your account. No ads, no data resale.
+
+Questions, wholesale orders or custom pieces: info@alruknalthamin.com</p></div>
+          <div class="field" data-max="100"><div class="fh"><span class="fl">Keywords</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">21k,24k,silver,zakat,nisab,bullion,saudi,riyal,karat,mithqal,tola,portfolio,necklace,ring,bangle</p></div>
+          <div class="field"><div class="fh"><span class="fl">Support URL</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/en/contact</p></div>
+          <div class="field"><div class="fh"><span class="fl">Marketing URL (optional)</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/en</p></div>
+        </div>
+        <div class="fields" data-pane="list-ar" hidden>
+          <div class="field" data-max="170"><div class="fh"><span class="fl">Promotional text</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val" dir="rtl">أسعار الذهب بالريال لحظياً، حاسبة زكاة، مقارنة عروض المحلات، ومجوهرات معتمدة عيار 21. بالعربية والإنجليزية.</p></div>
+          <div class="field" data-max="4000"><div class="fh"><span class="fl">Description</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val" dir="rtl">ركن ثمين هو رفيقك في الذهب داخل السعودية: أسعار لحظية، وأرقام واضحة، ومجوهرات معتمدة، في تطبيق واحد يدعم العربية والإنجليزية واتجاه من اليمين إلى اليسار.
+
+■ أسعار مباشرة
+أسعار الذهب عيار 24 و22 و21 و18، إضافة إلى الفضة والبلاتين والبلاديوم، بالريال السعودي للجرام، محدّثة من السعر الفوري مع بيان وقت آخر تحديث.
+
+■ احسب قيمة أي قطعة
+تحوّل حاسبة قيمة الذهب الوزن والعيار وأجرة الصياغة وضريبة القيمة المضافة إلى السعر العادل للقطعة، مع محوّل أوزان بين الجرام والتولة والأونصة والمثقال.
+
+■ استثماراتي
+أضف كل ما تملكه من سبائك وعملات ومشغولات مع سعر الشراء وأجرة الصياغة والضريبة، ثم شاهد القيمة الحالية للمحفظة، والربح والخسارة، ونسبة العائد، والعائد السنوي، وتوزيع المعادن في رسم واحد. اسحب للتحديث في أي وقت.
+
+■ جولات التسوق
+خطّط جولتك قبل الشراء، وسجّل عرض كل محل: السعر الإجمالي، والوزن، والعيار، وهل يشمل الضريبة، مع بيان إن كانت الصياغة محلية أو مستوردة. يصنّف التطبيق كل عرض بين ممتاز وعادل ومرتفع مقارنة بسعر السوق المرجعي، لتقارن بين المحلات في مكان واحد وتختار الأفضل.
+
+■ حاسبة الزكاة
+فحص تلقائي للنصاب (85 جراماً من ذهب عيار 24)، مع حساب المال الزكوي والواجب 2.5% وتفصيل الأصول. تقدير مبسّط يعتمد على الأسعار الحالية، ويُرجى مراجعة أحد المتخصصين في أحكام الزكاة لشروط الحول ونحوها.
+
+■ المتجر
+قلائد وخواتم وبناجر وسبائك من الذهب المعتمد، بأسعار تتبع سعر عيار 21 لحظياً، مع العروض الخاصة والتشكيلات المختارة. ابحث وأضف إلى المفضلة وأكمل الشراء داخل التطبيق: توصيل منزلي أو استلام من الفرع أو حفظ في خزنة الفرع، والدفع بالتحويل البنكي أو مدى/البطاقة. تابع مراحل كل طلب، وحمّل الفواتير الضريبية، وتحقق من شهادات السبائك.
+
+■ مصمَّم للسعودية
+لغتان كاملتان مع اتجاه من اليمين إلى اليسار، وأسعار بالريال السعودي، وحسابات تراعي ضريبة القيمة المضافة، وعيار 21 معاملة أساسية. يعمل على الجوال والتابلت.
+
+كزائر، تبقى محفظتك ومفضلتك وجولاتك على جهازك؛ سجّل الدخول برقم جوالك لمزامنة المحفظة مع حسابك. بدون إعلانات ولا بيع للبيانات.
+
+للاستفسار والطلبات الخاصة: info@alruknalthamin.com</p></div>
+          <div class="field" data-max="100"><div class="fh"><span class="fl">Keywords</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val" dir="rtl">سعر الذهب,عيار 21,عيار 24,زكاة,نصاب,سبائك,فضة,خواتم,أساور,شبكة,محفظة,الرياض,جدة</p></div>
+          <div class="field"><div class="fh"><span class="fl">Support URL</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/ar/contact</p></div>
+          <div class="field"><div class="fh"><span class="fl">Marketing URL (optional)</span><button class="copy" type="button">Copy</button></div><p class="val">https://rknthmin.com.sa/ar</p></div>
+        </div>
+        <div class="fields">
+          <div class="field"><div class="fh"><span class="fl">Copyright</span><button class="copy" type="button">Copy</button></div><p class="val">2026 Al Rukn Al Thamin Gold &amp; Jewelry</p></div>
+        </div>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Version</td><td><code>2.0.0</code> (must match the build)</td></tr>
+            <tr><td>What's New</td><td>Not shown on a first release</td></tr>
+            <tr><td>Build</td><td><b>Add Build</b> → 2.0.0 (100) once processing has finished</td></tr>
+            <tr><td>Game Center</td><td>Off</td></tr>
+            <tr><td>Routing App Coverage File</td><td>Not applicable (not a navigation app)</td></tr>
+            <tr><td>In-App Purchases and Subscriptions</td><td>None to attach</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note ok"><span class="tag">Checked</span><p>The description's features exist in this build: price alerts (<code>/invest/alerts</code>), bar certificate check (<code>/certificate</code>), orders with invoices, mithqal/tola units and palladium. Promotional text can be changed later without a new review, so use it for offers.</p></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-ls1"><span>English promotional text, description, keywords, support and marketing URLs saved</span></label></li>
+          <li><label><input type="checkbox" id="c-ls2"><span>Arabic promotional text, description, keywords, support and marketing URLs saved</span></label></li>
+          <li><label><input type="checkbox" id="c-ls3"><span>Copyright saved</span></label></li>
+          <li><label><input type="checkbox" id="c-ls4"><span>Build 2.0.0 (100) attached to the version</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 9 -->
+      <section class="step" id="review" data-title="Review notes">
+        <div class="step-head"><span class="step-num">09</span><h2>App Review information</h2><p class="where">Bottom of the version page → App Review Information</p></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Sign-in required</td><td>Checked</td></tr>
+            <tr><td>User name</td><td>The reviewer test phone number, e.g. <code>0500000000</code> <span class="pill todo">create on backend</span></td></tr>
+            <tr><td>Password</td><td>The fixed OTP code <span class="pill todo">create on backend</span></td></tr>
+            <tr><td>Contact first / last name</td><td>The person who will answer during review <span class="pill todo">fill in</span></td></tr>
+            <tr><td>Contact phone</td><td><code>+966 57 378 8758</code> (company WhatsApp line; Apple may call it) <span class="pill check">confirm</span></td></tr>
+            <tr><td>Contact email</td><td><code>info@alruknalthamin.com</code></td></tr>
+            <tr><td>Attachment</td><td><span class="pill opt">optional</span> a short screen recording of sign-in → order → delete account helps if review stalls</td></tr>
+          </tbody>
+        </table></div>
+        <div class="fields">
+          <div class="field" data-max="4000"><div class="fh"><span class="fl">Notes</span><span class="cnt"></span><button class="copy" type="button">Copy</button></div><p class="val">Sign-in is by phone number and one-time SMS code. Use the test number above; it always accepts the code in the password field.
+
+The app works signed-out for live prices, the portfolio, calculators, zakat and shopping trips. Signing in is needed to place an order and to sync the portfolio.
+
+Payments: the shop sells physical gold jewelry and bars (guideline 3.1.3(e) / 3.1.5(a)). Customers pay by bank transfer (optional receipt photo, which is why the app asks for camera and photo access) or by mada/card on Paymob's hosted payment page. There is no digital content to unlock, so In-App Purchase is not used.
+
+The app shows public metal spot prices and the user's own holdings for record-keeping and zakat estimates. It does not execute trades, hold funds or give regulated investment advice.
+
+Seller: Al Rukn Al Thamin Gold & Jewelry, Commercial Register 7041480281, VAT 312482882500003.
+Account deletion: Profile → Delete account.
+Privacy policy: https://rknthmin.com.sa/en/privacy
+Arabic is the default on Arabic devices; all screens are right-to-left.</p></div>
+        </div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-rv1"><span>Test number and OTP entered</span></label></li>
+          <li><label><input type="checkbox" id="c-rv2"><span>Contact details and notes saved</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 10 -->
+      <section class="step" id="pricing" data-title="Pricing & release">
+        <div class="step-head"><span class="step-num">10</span><h2>Pricing, availability and release</h2><p class="where">Monetization → Pricing and Availability, then the version page → App Store Version Release</p></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Answer</th></tr></thead>
+          <tbody>
+            <tr><td>Price</td><td>Free</td></tr>
+            <tr><td>Tax category</td><td>Keep the default (App Store software)</td></tr>
+            <tr><td>Availability</td><td>Saudi Arabia, UAE, Kuwait, Qatar, Bahrain, Oman, Egypt. Only add more if the store ships there.</td></tr>
+            <tr><td>EU Digital Services Act trader status</td><td>Not needed while no EU country is selected. If you add one, declare <b>trader</b> and give the company address, phone and email.</td></tr>
+            <tr><td>iPhone/iPad apps on Apple silicon Mac &amp; Vision Pro</td><td>Untick both (not tested there)</td></tr>
+            <tr><td>Pre-order</td><td>No</td></tr>
+            <tr><td>In-App Purchases</td><td>None</td></tr>
+            <tr><td>Version release</td><td><b>Manually release this version</b>, so you pick the launch moment after approval</td></tr>
+          </tbody>
+        </table></div>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-pr1"><span>Price and countries saved</span></label></li>
+          <li><label><input type="checkbox" id="c-pr3"><span>Mac and Vision Pro availability unticked</span></label></li>
+          <li><label><input type="checkbox" id="c-pr2"><span>Manual release selected</span></label></li>
+        </ul>
+      </section>
+
+      <!-- 11 -->
+      <section class="step" id="submit" data-title="Submit">
+        <div class="step-head"><span class="step-num">11</span><h2>Submit for review</h2><p class="where">Version page → Add for Review → Submit to App Review</p></div>
+        <p>Review usually takes 24–48 hours. You'll get an email for "In Review", then "Pending Developer Release" (approved) or a rejection message in App Review.</p>
+        <h3>Most likely rejections for this app</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Guideline</th><th>Cause here</th><th>What to do</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">2.1</td><td>Reviewer can't get past the SMS code</td><td>Test number + fixed OTP in the review notes</td></tr>
+            <tr><td class="mono">5.1.1(v)</td><td>Account deletion fails on the server</td><td>Confirm <code>DELETE /store/customers/me</code> on production</td></tr>
+            <tr><td class="mono">2.3.3</td><td>Screenshots don't match the build</td><td>Regenerate from this build (<code>store-assets/appstore/README.md</code>)</td></tr>
+            <tr><td class="mono">2.3.1</td><td>Description mentions a feature the build doesn't have</td><td>Trim the description before pasting</td></tr>
+            <tr><td class="mono">4.0</td><td>Layout looks broken on iPad</td><td>Test on an iPad, or remove iPad support</td></tr>
+          </tbody>
+        </table></div>
+        <p>If you're rejected, answer in App Review with the fix (and a screen recording if it's about behaviour), then resubmit. Don't resubmit without replying.</p>
+        <ul class="checks">
+          <li><label><input type="checkbox" id="c-sb1"><span>Submitted to App Review</span></label></li>
+          <li><label><input type="checkbox" id="c-sb2"><span>Approved</span></label></li>
+          <li><label><input type="checkbox" id="c-sb3"><span>Released to the App Store</span></label></li>
+        </ul>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  const KEY = 'rukn-ios-guide-v2';
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { state = {}; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  const boxes = Array.from(document.querySelectorAll('.checks input[type=checkbox]'));
+  boxes.forEach(b => { b.checked = !!state[b.id]; });
+
+  const steps = Array.from(document.querySelectorAll('section.step'));
+  const toc = document.getElementById('toc');
+  steps.forEach((s, i) => {
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<span class="n">' + String(i + 1).padStart(2, '0') + '</span><span></span><span class="c"></span>';
+    a.children[1].textContent = s.dataset.title;
+    li.appendChild(a); toc.appendChild(li);
+    s._link = a;
+  });
+
+  function refresh() {
+    const done = boxes.filter(b => b.checked).length;
+    document.getElementById('pfill').style.width = (boxes.length ? done / boxes.length * 100 : 0) + '%';
+    document.getElementById('plabel').textContent = done + ' of ' + boxes.length + ' done';
+    steps.forEach(s => {
+      const bs = s.querySelectorAll('.checks input');
+      const d = Array.from(bs).filter(b => b.checked).length;
+      s._link.querySelector('.c').textContent = d + '/' + bs.length;
+      s._link.classList.toggle('done', bs.length > 0 && d === bs.length);
+    });
+  }
+  boxes.forEach(b => b.addEventListener('change', () => { state[b.id] = b.checked; save(); refresh(); }));
+  document.getElementById('reset').addEventListener('click', function () {
+    if (this.dataset.armed) {
+      boxes.forEach(b => { b.checked = false; }); state = {}; save(); refresh();
+      this.textContent = 'Clear all ticks'; delete this.dataset.armed;
+    } else {
+      this.textContent = 'Click again to clear'; this.dataset.armed = '1';
+      setTimeout(() => { this.textContent = 'Clear all ticks'; delete this.dataset.armed; }, 3000);
+    }
+  });
+  refresh();
+
+  document.querySelectorAll('.field').forEach(f => {
+    const max = +f.dataset.max; const c = f.querySelector('.cnt'); if (!max || !c) return;
+    const n = Array.from(f.querySelector('.val').textContent).length;
+    c.textContent = n + ' / ' + max; if (n > max) c.classList.add('over');
+  });
+
+  document.querySelectorAll('.copy').forEach(btn => btn.addEventListener('click', () => {
+    const val = btn.closest('.field').querySelector('.val');
+    const ok = () => { btn.textContent = 'Copied'; btn.classList.add('done'); setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500); };
+    const fallback = () => { const r = document.createRange(); r.selectNodeContents(val); const s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Press ⌘C'; };
+    try { navigator.clipboard.writeText(val.textContent).then(ok, fallback); } catch (e) { fallback(); }
+  }));
+
+  document.querySelectorAll('.tabs').forEach(tabs => {
+    const g = tabs.dataset.group;
+    tabs.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+      tabs.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === t ? 'true' : 'false'));
+      document.querySelectorAll('[data-pane^="' + g + '-"]').forEach(p => { p.hidden = p.dataset.pane !== g + '-' + t.dataset.lang; });
+    }));
+  });
+})();
+</script>
+</body>
+</html>
