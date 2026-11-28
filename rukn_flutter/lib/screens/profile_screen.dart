@@ -109,12 +109,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (mounted) showSnack(context, status == 'deleted' ? i18n.t('deleteAccountDone') : i18n.t('deviceDataWiped'));
       return;
     }
-    if (status == 'unauthorized') auth.setCustomer(null);
+    // Open orders or vault items block deletion: stay signed in so they can be settled.
+    final openItems = status == 'open_items';
+    if (!openItems) {
+      // The server copy may still exist, but the customer asked to leave: sign out anyway.
+      await auth.signOut();
+      if (!mounted) return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(i18n.t('deleteAccount')),
-        content: Text(i18n.t('deleteAccountFailed')),
+        content: Text(i18n.t(openItems ? 'deleteAccountOpenItems' : 'deleteAccountFailed')),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: Text(i18n.t('deleteAccountCancel'))),
           TextButton(

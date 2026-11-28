@@ -101,6 +101,7 @@ class AccountService {
         await TokenStore.clear();
         return 'unauthorized';
       }
+      if (e.status == 409 && e.code == 'OPEN_ITEMS') return 'open_items';
       if (e.status == 404 || e.status == 405) return 'unsupported';
       return 'error';
     } catch (_) {
